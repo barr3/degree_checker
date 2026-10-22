@@ -280,11 +280,6 @@ footer { display: grid; gap: 14px; }
 .sem > header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--field); }
 .sem > header h2 { font-size: 17px; }
 .sem-hp { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
-.periods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.period { padding: 12px 14px 16px; display: grid; gap: 12px; align-content: start; min-width: 0; }
-.period + .period { border-left: 1px solid var(--line); }
-@media (max-width: 640px) { .periods { grid-template-columns: minmax(0, 1fr); } .period + .period { border-left: 0; border-top: 1px solid var(--line); } }
-.period h3 { color: var(--ink); }
 .block { display: grid; gap: 6px; }
 .block h4 { margin: 0; font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
 
@@ -309,16 +304,7 @@ footer { display: grid; gap: 14px; }
 .course.conflict .c-note { color: var(--bad); }
 .course.elsewhere .c-note { color: var(--accent); }
 
-.grid-tools { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 20px; }
-.view-switch { display: flex; align-items: center; gap: 0; font-size: 13px; }
-.view-switch span { color: var(--muted); margin-right: 8px; }
-.view-switch button { border-radius: 0; margin-left: -1px; }
-.view-switch button:first-of-type { border-radius: var(--radius) 0 0 var(--radius); }
-.view-switch button:last-of-type { border-radius: 0 var(--radius) var(--radius) 0; }
-.view-switch button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); position: relative; }
-
-/* Blocks as columns: each period across the full width, the same block lines up in both periods */
-.periods.layout-blocks { grid-template-columns: minmax(0, 1fr); }
+/* Each period across the full width, blocks as columns so the same block lines up in both periods */
 .period-row { padding: 12px 14px 16px; display: grid; gap: 10px; }
 .period-row + .period-row { border-top: 1px solid var(--line); }
 .period-row h3 { color: var(--ink); }
@@ -412,14 +398,7 @@ footer { display: grid; gap: 14px; }
     </div>
 
     <section class="builder">
-      <div class="grid-tools">
-        <label class="toggle"><input type="checkbox" id="show-all"> <span data-i18n="showAll"></span></label>
-        <div class="view-switch" role="group" aria-labelledby="layout-label">
-          <span id="layout-label" data-i18n="layoutLabel"></span>
-          <button type="button" data-layout="periods" data-i18n="layoutPeriods"></button>
-          <button type="button" data-layout="blocks" data-i18n="layoutBlocks"></button>
-        </div>
-      </div>
+      <label class="toggle"><input type="checkbox" id="show-all"> <span data-i18n="showAll"></span></label>
       <div class="grid" id="grid"></div>
 
       <section class="other" id="other">
@@ -1097,7 +1076,6 @@ const UI = {
     openInCheck: 'Show in Check a plan', emptyPlan: 'No courses yet. Click courses in the semesters to the right to start.',
     planCourses: (n, hpTotal) => `${n} course${n === 1 ? '' : 's'}, ${hpTotal} hp`,
     todoTitle: 'How to meet the requirements', todoAddBtn: (c, s) => `+ ${c} (sem. ${s})`, todoMoveBtn: (c, s) => `Move ${c} to sem. ${s}`, todoRemoveBtn: (c) => `Remove ${c}`,
-    layoutLabel: 'Layout', layoutPeriods: 'Periods side by side', layoutBlocks: 'Blocks as columns',
     courseInfo: (c) => `${c} on studieinfo`, chosenPeriod: (p) => `chosen in period ${p}`,
     exportOpen: 'Export…', exportTitle: 'Export your plan', exportFormat: 'Format',
     exportPdfHint: 'For reading and printing, e.g. to bring to study counselling.',
@@ -1212,7 +1190,6 @@ const UI = {
     openInCheck: 'Visa i Kontrollera plan', emptyPlan: 'Inga kurser än. Klicka på kurser i terminerna till höger för att börja.',
     planCourses: (n, hpTotal) => `${n} ${n === 1 ? 'kurs' : 'kurser'}, ${hpTotal} hp`,
     todoTitle: 'Så uppfyller du kraven', todoAddBtn: (c, s) => `+ ${c} (termin ${s})`, todoMoveBtn: (c, s) => `Flytta ${c} till termin ${s}`, todoRemoveBtn: (c) => `Ta bort ${c}`,
-    layoutLabel: 'Visning', layoutPeriods: 'Perioder sida vid sida', layoutBlocks: 'Block som kolumner',
     courseInfo: (c) => `${c} på studieinfo`, chosenPeriod: (p) => `vald i period ${p}`,
     exportOpen: 'Exportera…', exportTitle: 'Exportera planen', exportFormat: 'Format',
     exportPdfHint: 'För att läsa och skriva ut, t.ex. till ett möte med studievägledningen.',
@@ -1867,9 +1844,6 @@ function courseCard(code, sem, inst, multi, r, meta, cls) {
   </div>`;
 }
 
-const LAYOUT_KEY = 'tma-plan-layout';
-let layout = readJSON(LAYOUT_KEY, 'periods');
-
 function renderGrid(r) {
   const tags = visibleCourses();
   // Courses in the plan are always shown, also when they are outside the current filter.
@@ -1894,24 +1868,15 @@ function renderGrid(r) {
     const sorted = (list) => list.sort((a, z) => (z.tag.vof === 'o') - (a.tag.vof === 'o') || a.code.localeCompare(z.code));
     const blockHtml = (p, b) => `<div class="block" data-block="${b}"><h4>${esc(b === '-' ? t().noBlockHead : t().blockHead(b))}</h4>${
       cells[p][b] ? sorted(cells[p][b]).map(card).join('') : '<p class="hint">–</p>'}</div>`;
-    let periods;
-    if (layout === 'blocks') {
-      // Each period across the full width, with the blocks side by side so the same block lines up.
-      const blocks = BLOCK_ORDER.filter((b) => b !== '-' || cells[1]['-'] || cells[2]['-']);
-      periods = [1, 2].map((p) => `<div class="period-row"><h3>${esc(t().periodHead(String(p)))}</h3>
-        <div class="block-cols" style="--cols:${blocks.length}">${blocks.map((b) => blockHtml(p, b)).join('')}</div></div>`).join('');
-    } else {
-      periods = [1, 2].map((p) => {
-        const present = BLOCK_ORDER.filter((b) => cells[p][b]);
-        return `<div class="period"><h3>${esc(t().periodHead(String(p)))}</h3>${present.map((b) => blockHtml(p, b)).join('') || '<p class="hint">–</p>'}</div>`;
-      }).join('');
-    }
+    // Each period across the full width, with the blocks side by side so the same block lines up.
+    const blocks = BLOCK_ORDER.filter((b) => b !== '-' || cells[1]['-'] || cells[2]['-']);
+    const periods = [1, 2].map((p) => `<div class="period-row"><h3>${esc(t().periodHead(String(p)))}</h3>
+      <div class="block-cols" style="--cols:${blocks.length}">${blocks.map((b) => blockHtml(p, b)).join('')}</div></div>`).join('');
     const total = r.schedule.perSemester[sem];
     return `<section class="sem" data-sem="${sem}"><header><h2>${esc(t().semHead(sem, termLabel(sem)))}</h2>
-      <span class="sem-hp${total > 30 ? ' heavy' : ''}">${hp(total)} hp</span></header><div class="periods layout-${layout}">${periods}</div></section>`;
+      <span class="sem-hp${total > 30 ? ' heavy' : ''}">${hp(total)} hp</span></header><div class="periods">${periods}</div></section>`;
   }).join('');
   $('grid').innerHTML = html;
-  document.querySelectorAll('[data-layout]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.layout === layout));
 }
 
 function renderSummary(r) {
@@ -2014,11 +1979,6 @@ $('grid').addEventListener('click', (e) => {
   if (b.getAttribute('aria-pressed') === 'true') { removeCourse(code); update(); }
   else addCourse(code, sem, inst);
 });
-document.querySelectorAll('[data-layout]').forEach((b) => b.addEventListener('click', () => {
-  layout = b.dataset.layout;
-  writeJSON(LAYOUT_KEY, layout);
-  renderGrid(lastResult);
-}));
 $('other-results').addEventListener('click', (e) => {
   const add = e.target.closest('[data-add]');
   const rem = e.target.closest('[data-remove]');

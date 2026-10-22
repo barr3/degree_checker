@@ -69,9 +69,6 @@ function courseCard(code, sem, inst, multi, r, meta, cls) {
   </div>`;
 }
 
-const LAYOUT_KEY = 'tma-plan-layout';
-let layout = readJSON(LAYOUT_KEY, 'periods');
-
 function renderGrid(r) {
   const tags = visibleCourses();
   // Courses in the plan are always shown, also when they are outside the current filter.
@@ -96,24 +93,15 @@ function renderGrid(r) {
     const sorted = (list) => list.sort((a, z) => (z.tag.vof === 'o') - (a.tag.vof === 'o') || a.code.localeCompare(z.code));
     const blockHtml = (p, b) => `<div class="block" data-block="${b}"><h4>${esc(b === '-' ? t().noBlockHead : t().blockHead(b))}</h4>${
       cells[p][b] ? sorted(cells[p][b]).map(card).join('') : '<p class="hint">–</p>'}</div>`;
-    let periods;
-    if (layout === 'blocks') {
-      // Each period across the full width, with the blocks side by side so the same block lines up.
-      const blocks = BLOCK_ORDER.filter((b) => b !== '-' || cells[1]['-'] || cells[2]['-']);
-      periods = [1, 2].map((p) => `<div class="period-row"><h3>${esc(t().periodHead(String(p)))}</h3>
-        <div class="block-cols" style="--cols:${blocks.length}">${blocks.map((b) => blockHtml(p, b)).join('')}</div></div>`).join('');
-    } else {
-      periods = [1, 2].map((p) => {
-        const present = BLOCK_ORDER.filter((b) => cells[p][b]);
-        return `<div class="period"><h3>${esc(t().periodHead(String(p)))}</h3>${present.map((b) => blockHtml(p, b)).join('') || '<p class="hint">–</p>'}</div>`;
-      }).join('');
-    }
+    // Each period across the full width, with the blocks side by side so the same block lines up.
+    const blocks = BLOCK_ORDER.filter((b) => b !== '-' || cells[1]['-'] || cells[2]['-']);
+    const periods = [1, 2].map((p) => `<div class="period-row"><h3>${esc(t().periodHead(String(p)))}</h3>
+      <div class="block-cols" style="--cols:${blocks.length}">${blocks.map((b) => blockHtml(p, b)).join('')}</div></div>`).join('');
     const total = r.schedule.perSemester[sem];
     return `<section class="sem" data-sem="${sem}"><header><h2>${esc(t().semHead(sem, termLabel(sem)))}</h2>
-      <span class="sem-hp${total > 30 ? ' heavy' : ''}">${hp(total)} hp</span></header><div class="periods layout-${layout}">${periods}</div></section>`;
+      <span class="sem-hp${total > 30 ? ' heavy' : ''}">${hp(total)} hp</span></header><div class="periods">${periods}</div></section>`;
   }).join('');
   $('grid').innerHTML = html;
-  document.querySelectorAll('[data-layout]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.layout === layout));
 }
 
 function renderSummary(r) {
@@ -216,11 +204,6 @@ $('grid').addEventListener('click', (e) => {
   if (b.getAttribute('aria-pressed') === 'true') { removeCourse(code); update(); }
   else addCourse(code, sem, inst);
 });
-document.querySelectorAll('[data-layout]').forEach((b) => b.addEventListener('click', () => {
-  layout = b.dataset.layout;
-  writeJSON(LAYOUT_KEY, layout);
-  renderGrid(lastResult);
-}));
 $('other-results').addEventListener('click', (e) => {
   const add = e.target.closest('[data-add]');
   const rem = e.target.closest('[data-remove]');

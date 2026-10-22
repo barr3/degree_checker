@@ -268,11 +268,6 @@ footer { display: grid; gap: 14px; }
 .sem > header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: var(--field); }
 .sem > header h2 { font-size: 17px; }
 .sem-hp { font-family: var(--font-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
-.periods { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.period { padding: 12px 14px 16px; display: grid; gap: 12px; align-content: start; min-width: 0; }
-.period + .period { border-left: 1px solid var(--line); }
-@media (max-width: 640px) { .periods { grid-template-columns: minmax(0, 1fr); } .period + .period { border-left: 0; border-top: 1px solid var(--line); } }
-.period h3 { color: var(--ink); }
 .block { display: grid; gap: 6px; }
 .block h4 { margin: 0; font-family: var(--font-mono); font-size: 11px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
 
@@ -297,16 +292,7 @@ footer { display: grid; gap: 14px; }
 .course.conflict .c-note { color: var(--bad); }
 .course.elsewhere .c-note { color: var(--accent); }
 
-.grid-tools { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 20px; }
-.view-switch { display: flex; align-items: center; gap: 0; font-size: 13px; }
-.view-switch span { color: var(--muted); margin-right: 8px; }
-.view-switch button { border-radius: 0; margin-left: -1px; }
-.view-switch button:first-of-type { border-radius: var(--radius) 0 0 var(--radius); }
-.view-switch button:last-of-type { border-radius: 0 var(--radius) var(--radius) 0; }
-.view-switch button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); position: relative; }
-
-/* Blocks as columns: each period across the full width, the same block lines up in both periods */
-.periods.layout-blocks { grid-template-columns: minmax(0, 1fr); }
+/* Each period across the full width, blocks as columns so the same block lines up in both periods */
 .period-row { padding: 12px 14px 16px; display: grid; gap: 10px; }
 .period-row + .period-row { border-top: 1px solid var(--line); }
 .period-row h3 { color: var(--ink); }
