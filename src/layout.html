@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="__DESCRIPTION__">
+<title>__TITLE__</title>
+<link rel="icon" type="image/png" sizes="64x64" href="favicon-64.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- Fonts are served from this site (fonts/, SIL OFL) so the page talks to one server; the body font is preloaded. -->
+<link rel="preload" href="fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+/*__STYLE__*/
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow" data-i18n="eyebrow"></div>
+    <h1>TMA Degree Check</h1>
+    <p data-i18n="__INTRO_KEY__"></p>
+    <div class="header-tools">
+      <button type="button" class="help" id="help" data-i18n-title="helpTitle" aria-label="?">?</button>
+      <div class="lang" role="group" aria-label="Språk / Language">
+        <button type="button" id="lang-sv" lang="sv">Svenska</button>
+        <button type="button" id="lang-en" lang="en">English</button>
+      </div>
+    </div>
+    <nav class="tabs" aria-label="Sidor / Pages">
+      <a href="index.html" id="nav-check" data-i18n="navCheck"></a>
+      <a href="planera.html" id="nav-plan" data-i18n="navPlan"></a>
+    </nav>
+  </header>
+
+<!--__BODY__-->
+
+  <footer id="about">
+    <div class="about">
+      <h2 data-i18n="aboutTitle"></h2>
+      <p data-i18n="aboutText"></p>
+      <p><span data-i18n="contactText"></span> <span id="contact"></span></p>
+      <p><span data-i18n="githubText"></span> <a href="https://github.com/barr3/degree_checker" target="_blank" rel="noopener">github.com/barr3/degree_checker</a></p>
+    </div>
+    <p class="fineprint"><span data-i18n="unofficial"></span> <span id="source-line"></span></p>
+  </footer>
+</div>
+
+<dialog id="export-dialog" aria-labelledby="export-title">
+  <form id="export-form" method="dialog">
+    <h2 id="export-title" data-i18n="exportTitle"></h2>
+    <fieldset>
+      <legend data-i18n="exportFormat"></legend>
+      <label class="format"><input type="radio" name="format" value="pdf" id="format-pdf" checked><b>PDF</b><span data-i18n="exportPdfHint"></span></label>
+      <label class="format"><input type="radio" name="format" value="xlsx" id="format-xlsx"><b>Excel (.xlsx)</b><span data-i18n="exportXlsxHint"></span></label>
+    </fieldset>
+    <div id="export-status" class="export-status"></div>
+    <p class="export-error" id="export-error" hidden></p>
+    <div class="row dialog-buttons">
+      <button type="button" id="export-cancel" data-i18n="exportCancel"></button>
+      <button type="submit" id="export-go" class="primary"></button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="confirm-dialog" aria-labelledby="confirm-title">
+  <form method="dialog">
+    <h2 id="confirm-title"></h2>
+    <div id="confirm-body"></div>
+    <div class="row dialog-buttons">
+      <button type="button" id="confirm-cancel"></button>
+      <button type="button" id="confirm-ok" class="primary"></button>
+    </div>
+  </form>
+</dialog>
+
+<div class="tour" id="tour" hidden>
+  <div class="tour-spot" id="tour-spot"></div>
+  <div class="tour-card" id="tour-card" role="dialog" aria-modal="true" aria-labelledby="tour-title">
+    <p class="tour-count" id="tour-count"></p>
+    <h2 id="tour-title"></h2>
+    <p id="tour-text"></p>
+    <div class="row dialog-buttons">
+      <button type="button" id="tour-skip"></button>
+      <button type="button" id="tour-back"></button>
+      <button type="button" id="tour-next" class="primary"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PAGE = '__PAGE__';
+/*__SHARED__*/
+/*__PAGE_JS__*/
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+  <div class="layout planner">
+    <div class="panel side" id="plan">
+      <div class="settings" id="plan-settings">
+        <div class="field">
+          <label for="cohort" data-i18n="cohort"></label>
+          <select id="cohort"></select>
+        </div>
+        <div class="field">
+          <label for="profile" data-i18n="profile"></label>
+          <select id="profile"></select>
+        </div>
+        <div class="field">
+          <label for="spec" data-i18n="spec"></label>
+          <select id="spec"></select>
+        </div>
+      </div>
+      <div class="summary" id="summary" aria-live="polite"></div>
+      <div class="row">
+        <button type="button" class="primary" id="export-open" data-i18n="exportOpen"></button>
+        <button type="button" id="clear-plan" data-i18n="clearPlan"></button>
+      </div>
+<!--__SAVED__-->
+    </div>
+
+    <section class="builder">
+      <label class="toggle"><input type="checkbox" id="show-all"> <span data-i18n="showAll"></span></label>
+      <div class="grid" id="grid"></div>
+
+      <section class="other" id="other">
+        <h2 data-i18n="otherTitle"></h2>
+        <p class="hint" id="other-hint"></p>
+        <div class="other-controls">
+          <input type="search" id="other-search" data-i18n-placeholder="otherSearch" autocomplete="off">
+          <label class="toggle"><input type="checkbox" id="other-adv"> <span data-i18n="otherAdvanced"></span></label>
+        </div>
+        <ul class="other-results" id="other-results"></ul>
+      </section>
+
+      <section class="all-reqs" id="all-reqs">
+        <h2 data-i18n="seeAll"></h2>
+        <div class="results" id="reqs"></div>
+      </section>
+    </section>
+  </div>
+  <div class="toast" id="toast" role="status" hidden></div>

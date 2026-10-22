@@ -8,6 +8,8 @@ const ADVANCED_HP = 60;
 // 30 hp advanced level in the main field (Tillämpad matematik).
 const MAIN_FIELD_HP = 30;
 const DEFAULT_OUTSIDE_HP = 6;
+// Full-time study: 30 hp per semester, 60 hp per year.
+const SEMESTER_HP = 30;
 // Autumn courses can be taken in semester 7 or 9, spring courses in semester 8.
 const TERM_SEMESTERS = { HT: [7, 9], VT: [8] };
 const termOf = (sem) => (sem === 8 ? 'VT' : 'HT');
@@ -31,6 +33,11 @@ const MESSAGES = {
     earlyElective: 'Year 1–3 elective.',
     outsideAssumed: (hp) => `Not in the program plan. Credits unknown, assumed ${hp} hp.`,
     outside: 'Not in the program plan.',
+    outsideCatalog: (progs) => `Not in the program plan. Given for other programs (${progs}).`,
+    outsideLanguage: 'Language course, not in the program plan.',
+    heavy: (sem, hp) => `Semester ${sem} has ${hp} hp. More than 30 hp in a semester is a lot of work.`,
+    csnYear: (hp) => `Semesters 7 and 8 add up to ${hp} hp. Less than 60 hp in a year can affect your CSN student aid.`,
+    csnSem9: (hp) => `Semester 9 has ${hp} hp. Less than 30 hp (with the thesis in semester 10) can affect your CSN student aid.`,
     profMandTitle: 'Mandatory profile courses',
     none: 'This profile has no mandatory courses.',
     missing: (x) => `Missing: ${x}.`,
@@ -70,6 +77,11 @@ const MESSAGES = {
     earlyElective: 'Valbar kurs i åk 1–3.',
     outsideAssumed: (hp) => `Finns inte i programplanen. Okänt antal hp, antas vara ${hp} hp.`,
     outside: 'Finns inte i programplanen.',
+    outsideCatalog: (progs) => `Finns inte i programplanen. Ges för andra program (${progs}).`,
+    outsideLanguage: 'Språkkurs, finns inte i programplanen.',
+    heavy: (sem, hp) => `Termin ${sem} har ${hp} hp. Mer än 30 hp på en termin är mycket arbete.`,
+    csnYear: (hp) => `Termin 7 och 8 blir tillsammans ${hp} hp. Mindre än 60 hp på ett år kan påverka ditt studiestöd från CSN.`,
+    csnSem9: (hp) => `Termin 9 har ${hp} hp. Mindre än 30 hp (med examensarbetet termin 10) kan påverka ditt studiestöd från CSN.`,
     profMandTitle: 'Obligatoriska profilkurser',
     none: 'Profilen har inga obligatoriska kurser.',
     missing: (x) => `Saknas: ${x}.`,
@@ -143,7 +155,20 @@ function clash(instsA, instsB) {
   return first;
 }
 
-function classify(cohort, profile, spec, entry, M, lang) {
+// Course details and timetable for a code: the cohort's own plan first, then the catalog of courses
+// from other Linköping engineering programs (same admission year if possible) and language courses.
+function courseSchedule(cohort, catalog, code) {
+  const own = cohort.courses[code];
+  if (own) return own.s ? own : null;
+  if (!catalog || !catalog.courses[code]) return null;
+  // sched.base is the newest timetable; sched[year] only holds the courses that differ that year.
+  const year = cohort.label.slice(3);
+  const s = (catalog.sched[year] || {})[code] || catalog.lang[code] || catalog.sched.base[code];
+  if (!s) return null;
+  return { ...catalog.courses[code], s, sem: Object.keys(s).map((term) => TERM_SEMESTERS[term][0]) };
+}
+
+function classify(cohort, profile, spec, entry, M, lang, catalog) {
   const info = cohort.courses[entry.code];
   const inProfile = entry.code in profile.c;
   const inSpec = entry.code in spec.c;
@@ -164,6 +189,11 @@ function classify(cohort, profile, spec, entry, M, lang) {
     if (vof === 'o') return { ...base, counted: false, role: 'excluded', note: M.early };
     if (vof === 'f') return { ...base, counted: false, role: 'excluded', note: M.voluntary };
     return { ...base, role: 'elective', note: M.earlyElective };
+  }
+  const known = catalog && catalog.courses[entry.code];
+  if (known) {
+    return { ...base, name: lang === 'en' ? known.ne : known.n, hp: entry.hp ?? known.hp, level: known.l, tm: known.tm,
+      role: 'outside', note: known.lang ? M.outsideLanguage : M.outsideCatalog(known.progs.join(', ')) };
   }
   return { ...base, hp: entry.hp ?? DEFAULT_OUTSIDE_HP, level: entry.adv ? 'A' : null, role: 'outside',
     hpAssumed: entry.hp == null, note: entry.hp == null ? M.outsideAssumed(DEFAULT_OUTSIDE_HP) : M.outside };
@@ -209,9 +239,9 @@ function alternatives(cohort, alt, placed, x, sem) {
   return out;
 }
 
-function timetable(cohort, alt, courses, semesters) {
+function timetable(cohort, alt, catalog, courses, semesters, M) {
   const placed = courses.filter((c) => c.counted).map((c) => {
-    const info = cohort.courses[c.code];
+    const info = courseSchedule(cohort, catalog, c.code);
     const options = semesterOptions(info);
     if (!options.length) return null;
     const sem = options.includes(semesters[c.code]) ? semesters[c.code] : Math.min(...info.sem);
@@ -246,7 +276,13 @@ function timetable(cohort, alt, courses, semesters) {
   const perSemester = { 7: 0, 8: 0, 9: 0 };
   for (const c of courses) if (c.counted && c.sem) perSemester[c.sem] += c.hp;
   const unplaced = courses.filter((c) => c.counted && !c.sem);
-  return { collisions, perSemester, unplacedHp: sum(unplaced) };
+  // Workload and CSN: more than 30 hp in a semester is a lot of work; CSN usually looks at a full
+  // year, so semesters 7 + 8 should add up to 60 hp, and semester 9 (with the thesis in 10) to 30.
+  const load = [];
+  for (const sem of [7, 8, 9]) if (perSemester[sem] > SEMESTER_HP) load.push({ type: 'heavy', sem, text: M.heavy(sem, fmt(perSemester[sem])) });
+  if (perSemester[7] + perSemester[8] < 2 * SEMESTER_HP) load.push({ type: 'csn', text: M.csnYear(fmt(perSemester[7] + perSemester[8])) });
+  if (perSemester[9] < SEMESTER_HP) load.push({ type: 'csn', text: M.csnSem9(fmt(perSemester[9])) });
+  return { collisions, perSemester, unplacedHp: sum(unplaced), load };
 }
 
 function validate(cohort, profileCode, specCode, text, opts = {}) {
@@ -257,7 +293,7 @@ function validate(cohort, profileCode, specCode, text, opts = {}) {
   const specName = lang === 'en' ? spec.name_en : spec.name;
   const rules = cohort.rules;
   const { entries, invalid, duplicates } = parseInput(text);
-  const courses = entries.map((e) => classify(cohort, profile, spec, e, M, lang));
+  const courses = entries.map((e) => classify(cohort, profile, spec, e, M, lang, opts.catalog));
   const counted = courses.filter((c) => c.counted);
   const taken = new Set(counted.map((c) => c.code));
   const reqs = [];
@@ -320,6 +356,7 @@ function validate(cohort, profileCode, specCode, text, opts = {}) {
     outside.length ? M.outsideHp(fmt(outsideHp), outside.map((c) => c.code).join(', '), outsideHp > rules.outsideMax ? rules.outsideMax : 0)
       : M.noOutside,
     { value: outsideHp, target: rules.outsideMax, max: true });
+  reqs[reqs.length - 1].ref = { url: `https://studieinfo.liu.se/program/6CTMA/${cohort.id}#syllabus:~:text=${encodeURIComponent('Maximalt kan')}`, quote: rules.outsideText };
 
   // Credit totals. Outside-plan credits above the cap do not count.
   const totalHp = sum(counted) - Math.max(0, outsideHp - rules.outsideMax);
@@ -348,8 +385,8 @@ function validate(cohort, profileCode, specCode, text, opts = {}) {
   if (assumed.length) warnings.push(M.assumedHp(DEFAULT_OUTSIDE_HP, assumed.map((c) => c.code).join(', '), assumed[0].code));
   if (outside.some((c) => !isAdv(c.level))) warnings.push(M.basicLevel);
 
-  const schedule = timetable(cohort, opts.alt, courses, opts.semesters || {});
+  const schedule = timetable(cohort, opts.alt, opts.catalog, courses, opts.semesters || {}, M);
   return { courses, reqs, warnings, schedule, totals: { totalHp, profHp, specHp, advHp, tmHp } };
 }
 
-if (typeof module !== 'undefined') module.exports = { validate, parseInput, clash, semesterOptions };
+if (typeof module !== 'undefined') module.exports = { validate, parseInput, clash, semesterOptions, courseSchedule, termOf };

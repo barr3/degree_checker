@@ -35,6 +35,7 @@ for cid, label in COHORTS.items():
         profileAdvCourses=num(r'Minst (\d+) kurser på avancerad nivå', t),
         specHp=num(r'teknisk inriktning omfattar (?:minst )?(\d+) hp', t),
         outsideMax=num(r'Maximalt kan (\d+) ?hp av kurser utanför programplanen', t),
+        outsideText=re.search(r'Maximalt kan \d+ ?hp av kurser utanför programplanen.*?examen\.', t).group(0),
         businessText=sorted(set(re.findall(CODE, biz_txt))),
     )
     courses, groups, general, early = {}, {}, {}, {}

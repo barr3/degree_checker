@@ -1,0 +1,53 @@
+  <div class="layout">
+    <div class="panel" id="plan">
+      <div class="field">
+        <label for="cohort" data-i18n="cohort"></label>
+        <select id="cohort"></select>
+      </div>
+      <div class="field">
+        <label for="profile" data-i18n="profile"></label>
+        <select id="profile"></select>
+      </div>
+      <div class="field">
+        <label for="spec" data-i18n="spec"></label>
+        <select id="spec"></select>
+      </div>
+      <div class="field">
+        <div class="row" style="justify-content: space-between;">
+          <label for="courses" data-i18n="courses"></label>
+          <span class="example-tag" id="example-tag" data-i18n="exampleTag" hidden></span>
+        </div>
+        <textarea id="courses" spellcheck="false" placeholder="TAMS46, TDDE09, TAMS48, …"></textarea>
+        <p class="hint" data-i18n-html="coursesHint"></p>
+        <div class="row">
+          <button type="button" id="clear" data-i18n="clear"></button>
+          <button type="button" id="example" data-i18n="loadExample"></button>
+        </div>
+      </div>
+<!--__SAVED__-->
+      <div class="picker" id="picker"></div>
+    </div>
+
+    <section class="results" aria-live="polite">
+      <div class="verdict" id="verdict"></div>
+      <ul class="warnings" id="warnings"></ul>
+      <div id="reqs" class="results"></div>
+      <div class="results">
+        <h2 data-i18n="yourCourses"></h2>
+        <div class="table-wrap" id="course-table">
+          <table>
+            <thead><tr>
+              <th data-i18n="thCode"></th><th data-i18n="thCourse"></th><th style="text-align:right">hp</th>
+              <th data-i18n="thLevel"></th><th data-i18n="thSemester"></th><th data-i18n="thCounts"></th>
+            </tr></thead>
+            <tbody id="course-rows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="results" id="timetable"></div>
+      <div class="assumed">
+        <h2 data-i18n="assumedTitle"></h2>
+        <ul id="assumed"></ul>
+      </div>
+    </section>
+  </div>

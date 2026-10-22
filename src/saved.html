@@ -1,0 +1,18 @@
+      <div class="saved" id="saved-plans">
+        <label for="saved-select" data-i18n="savedTitle"></label>
+        <select id="saved-select"></select>
+        <div class="row">
+          <button type="button" id="plan-save" data-i18n="planSave"></button>
+          <button type="button" id="plan-save-as" data-i18n="planSaveAs"></button>
+          <button type="button" id="plan-delete" data-i18n="planDelete"></button>
+        </div>
+        <form class="save-as" id="save-as" hidden>
+          <label for="plan-name" data-i18n="planName"></label>
+          <div class="row">
+            <input id="plan-name" type="text" maxlength="60" data-i18n-placeholder="planNamePlaceholder">
+            <button type="submit" class="primary" data-i18n="planNameOk"></button>
+            <button type="button" id="plan-name-cancel" data-i18n="planNameCancel"></button>
+          </div>
+        </form>
+        <p class="hint" id="saved-status" aria-live="polite"></p>
+      </div>

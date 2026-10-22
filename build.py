@@ -1,8 +1,9 @@
-"""Build index.html: embed course data and the validator into template.html.
+"""Build the site: index.html (check a plan) and planera.html (build a plan) from src/, with the
+course data and the validator embedded.
 
     python3 build.py <dir with page_<id>.html files>   # re-parse downloaded program plans, then build
-    python3 build.py                                     # build from the existing data.json and courses.json
-    python3 build.py --artifact <path>                   # also write a version for publishing as a claude.ai artifact
+    python3 build.py                                     # build from the existing data.json, courses.json and catalog.json
+    python3 build.py --artifact <dir>                    # also write versions for publishing as a claude.ai artifact
 """
 import argparse, base64, json, os, re, subprocess, sys
 
@@ -49,22 +50,64 @@ def artifact_version(page):
     for tag in ('</head>', '<body>', '</body>', '</html>'):
         page = page.replace(tag, '', 1)
     # Icons and preloads point at files next to index.html, which an artifact does not have.
+    return inline_fonts(page).lstrip()
+
+
+def inline_fonts(page):
+    """Icons and preloads point at files next to the page, which an artifact does not have; fonts go inline."""
     page = re.sub(r'<link rel="(?:icon|apple-touch-icon|preload)"[^>]*>\n', '', page)
     font = lambda m: 'url("data:font/woff2;base64,%s")' % base64.b64encode(open(os.path.join(here, m.group(1)), 'rb').read()).decode()
-    return re.sub(r'url\("(fonts/[^"]+\.woff2)"\)', font, page).lstrip()
+    return re.sub(r'url\("(fonts/[^"]+\.woff2)"\)', font, page)
 
+
+def compact_catalog(catalog):
+    """Most courses have the same timetable every year: keep the newest year as the base and only the
+    differences per admission year."""
+    years = sorted(catalog['sched'])
+    base = dict(catalog['sched'][years[-1]])
+    for y in years:
+        for code, s in catalog['sched'][y].items():
+            base.setdefault(code, s)
+    sched = {'base': base}
+    for y in years:
+        diff = {code: s for code, s in catalog['sched'][y].items() if base.get(code) != s}
+        if diff:
+            sched[y] = diff
+    return dict(programs=catalog['programs'], courses=catalog['courses'], sched=sched, lang=catalog['lang'])
+
+
+PAGES = {
+    'check': dict(file='index.html', title='TMA Degree Check', intro='intro',
+                  description='Kontrollera en kursplan för Civilingenjör i teknisk matematik (6CTMA, Linköpings universitet), termin 7–9, mot masterprofil, teknisk inriktning och examenskrav.'),
+    'plan': dict(file='planera.html', title='Bygg plan – TMA Degree Check', intro='planIntro',
+                 description='Bygg din plan för termin 7–9 på Civilingenjör i teknisk matematik (6CTMA, Linköpings universitet) period för period, med krav, schemakrockar och poäng.'),
+}
 
 # The date the course pages were downloaded, written by scrape_courses.py.
 fetched = read('fetched.txt').strip()
 alt = compact_alternatives(json.loads(read('courses.json')), int(fetched[:4]))
-page = (read('template.html')
-        .replace('/*__DATA__*/', read('data.json').strip())
-        .replace('/*__ALT__*/', json.dumps(alt, ensure_ascii=False, separators=(',', ':')))
-        .replace('/*__VALIDATOR__*/', read('validator.js'))
-        .replace('/*__EXAMPLE_SEMESTERS__*/', '')
-        .replace('__FETCHED__', fetched))
-open(os.path.join(here, 'index.html'), 'w', encoding='utf-8').write(page)
-print('wrote index.html', len(page), 'bytes')
+catalog = compact_catalog(json.loads(read('catalog.json')))
+shared = (read('src/shared.js')
+          .replace('/*__DATA__*/', read('data.json').strip())
+          .replace('/*__ALT__*/', json.dumps(alt, ensure_ascii=False, separators=(',', ':')))
+          .replace('/*__CATALOG__*/', json.dumps(catalog, ensure_ascii=False, separators=(',', ':')))
+          .replace('/*__VALIDATOR__*/', read('validator.js'))
+          .replace('__FETCHED__', fetched))
 if args.artifact:
-    open(args.artifact, 'w', encoding='utf-8').write(artifact_version(page))
-    print('wrote', args.artifact)
+    os.makedirs(args.artifact, exist_ok=True)
+for page, cfg in PAGES.items():
+    body = read(f'src/{page}.body.html').replace('<!--__SAVED__-->', read('src/saved.html').rstrip('\n'))
+    # Spliced last, in this order, so placeholders inside the data or code are never touched.
+    html = read('src/layout.html')
+    for key, value in [('__TITLE__', cfg['title']), ('__DESCRIPTION__', cfg['description']), ('__INTRO_KEY__', cfg['intro']),
+                       ('__PAGE__', page), ('/*__STYLE__*/', read('src/style.css')), ('<!--__BODY__-->', body),
+                       ('/*__PAGE_JS__*/', read(f'src/{page}.js')), ('/*__SHARED__*/', shared)]:
+        assert html.count(key) == 1, key
+        html = html.replace(key, value)
+    open(os.path.join(here, cfg['file']), 'w', encoding='utf-8').write(html)
+    print('wrote', cfg['file'], len(html), 'bytes')
+    if args.artifact:
+        # The first page is the artifact itself (the host adds the document skeleton); others are full pages.
+        out = artifact_version(html) if page == 'check' else inline_fonts(html)
+        open(os.path.join(args.artifact, cfg['file']), 'w', encoding='utf-8').write(out)
+        print('wrote', os.path.join(args.artifact, cfg['file']))
