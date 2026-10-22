@@ -220,6 +220,17 @@ function timetable(cohort, alt, courses, semesters) {
     return { code: c.code, sem, options, info, insts: info.s[termOf(sem)], coord: info.coord };
   }).filter(Boolean);
 
+  // For courses with several offerings in a term (TEAE01 in period 1 or 2), use the one that
+  // collides with the fewest other courses in the same semester.
+  for (const p of placed) {
+    const score = (inst) => placed.filter((o) => o !== p && o.sem === p.sem && !(p.coord || []).includes(o.code)
+      && clash([inst], o.insts)).length;
+    const best = p.insts.reduce((a, b) => (score(b) < score(a) ? b : a));
+    const course = courses.find((c) => c.code === p.code);
+    course.slots = best;
+    course.otherSlots = p.insts.filter((i) => i !== best);
+  }
+
   const collisions = [];
   for (let i = 0; i < placed.length; i++) {
     for (let j = i + 1; j < placed.length; j++) {

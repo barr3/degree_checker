@@ -138,13 +138,15 @@ table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { font-family: var(--font-mono); font-weight: 500; font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
 tbody tr:last-child td { border-bottom: 0; }
-tfoot td { border-top: 1px solid var(--line); border-bottom: 0; color: var(--muted); font-size: 13px; }
+tr.sem-head th { background: var(--accent-soft); color: var(--accent); font-family: var(--font-display); font-size: 15px; font-weight: 600; letter-spacing: 0; text-transform: none; padding: 8px 14px; }
+tr.sem-head th span { float: right; font-family: var(--font-mono); font-size: 12.5px; font-weight: 500; font-variant-numeric: tabular-nums; }
+tr.period-head td { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding: 10px 14px 4px; border-bottom: 0; }
 td.num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 td.code { font-family: var(--font-mono); white-space: nowrap; }
 tr.clashing td.code { color: var(--bad); font-weight: 500; }
 td select { width: auto; padding: 4px 6px; font-size: 13px; font-family: var(--font-mono); }
-.slots { display: block; font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); white-space: nowrap; margin-top: 3px; }
-.role { font-size: 12px; font-weight: 500; padding: 2px 7px; border-radius: 4px; white-space: nowrap; background: var(--paper); color: var(--muted); }
+.slots { display: block; font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); margin-top: 3px; min-width: 9em; }
+.role { display: inline-block; font-size: 12px; font-weight: 500; padding: 2px 7px; border-radius: 4px; background: var(--paper); color: var(--muted); }
 .role.profile, .role.spec { background: var(--accent-soft); color: var(--accent); }
 .role.outside { background: var(--warn-soft); color: var(--warn); }
 .role.excluded { text-decoration: line-through; }
@@ -473,6 +475,17 @@ function timetable(cohort, alt, courses, semesters) {
     return { code: c.code, sem, options, info, insts: info.s[termOf(sem)], coord: info.coord };
   }).filter(Boolean);
 
+  // For courses with several offerings in a term (TEAE01 in period 1 or 2), use the one that
+  // collides with the fewest other courses in the same semester.
+  for (const p of placed) {
+    const score = (inst) => placed.filter((o) => o !== p && o.sem === p.sem && !(p.coord || []).includes(o.code)
+      && clash([inst], o.insts)).length;
+    const best = p.insts.reduce((a, b) => (score(b) < score(a) ? b : a));
+    const course = courses.find((c) => c.code === p.code);
+    course.slots = best;
+    course.otherSlots = p.insts.filter((i) => i !== best);
+  }
+
   const collisions = [];
   for (let i = 0; i < placed.length; i++) {
     for (let j = i + 1; j < placed.length; j++) {
@@ -615,7 +628,9 @@ const UI = {
     yourCourses: 'Your courses', thCode: 'Code', thCourse: 'Course', thLevel: 'Level', thSemester: 'Semester', thCounts: 'Counts toward',
     roles: { profile: 'Profile', spec: 'Specialization', elective: 'Program elective', outside: 'Outside plan', excluded: 'Not counted' },
     noCourses: 'No courses yet. Type course codes or tap them in the list on the left.',
-    period: 'P', block: 'block', or: 'or', noBlock: 'no block',
+    period: 'P', block: 'block', or: 'or', noBlock: 'no block', alsoGiven: 'also given',
+    semHead: (sem, term) => `Semester ${sem} · ${term}`, noTimetable: 'No timetable',
+    periodHead: (key) => (key === '12' ? 'Periods 1–2' : `Period ${key}`),
     semTotals: 'Credits per semester', unscheduled: 'no semester',
     ttTitle: 'Timetable',
     noClash: 'No timetable collisions between your courses in the semesters you picked.',
@@ -660,7 +675,9 @@ const UI = {
     yourCourses: 'Dina kurser', thCode: 'Kod', thCourse: 'Kurs', thLevel: 'Nivå', thSemester: 'Termin', thCounts: 'Räknas till',
     roles: { profile: 'Profil', spec: 'Inriktning', elective: 'Valbar i programmet', outside: 'Utanför programplanen', excluded: 'Räknas inte' },
     noCourses: 'Inga kurser än. Skriv kurskoder eller tryck på dem i listan till vänster.',
-    period: 'P', block: 'block', or: 'eller', noBlock: 'inget block',
+    period: 'P', block: 'block', or: 'eller', noBlock: 'inget block', alsoGiven: 'ges även',
+    semHead: (sem, term) => `Termin ${sem} · ${term}`, noTimetable: 'Utan schema',
+    periodHead: (key) => (key === '12' ? 'Period 1–2' : `Period ${key}`),
     semTotals: 'Poäng per termin', unscheduled: 'ingen termin',
     ttTitle: 'Schema',
     noClash: 'Inga schemakrockar mellan dina kurser under de terminer du valt.',
@@ -797,14 +814,13 @@ function renderResults(r) {
   }).join('')}</div>`).join('');
 
   const clashing = new Set(r.schedule.collisions.flatMap((x) => [x.a, x.b]));
-  const c = cohortOf();
-  $('course-rows').innerHTML = r.courses.length ? r.courses.map((course) => {
+  const row = (course) => {
     let semCell = '—';
     if (course.semOptions) {
-      const insts = c.courses[course.code].s[course.sem === 8 ? 'VT' : 'HT'];
+      const also = course.otherSlots.length ? ` (${t().alsoGiven} ${instText(course.otherSlots)})` : '';
       semCell = (course.semOptions.length > 1
         ? `<select data-sem="${esc(course.code)}" aria-label="${esc(t().thSemester)} ${esc(course.code)}">${course.semOptions.map((s) => `<option value="${s}"${s === course.sem ? ' selected' : ''}>${s}</option>`).join('')}</select>`
-        : `<span class="mono">${course.sem}</span>`) + `<span class="slots">${esc(instText(insts))}</span>`;
+        : `<span class="mono">${course.sem}</span>`) + `<span class="slots">${esc(slotText(course.slots) + also)}</span>`;
     }
     return `<tr class="${clashing.has(course.code) ? 'clashing' : ''}">
       <td class="code">${esc(course.code)}</td>
@@ -813,7 +829,27 @@ function renderResults(r) {
       <td class="mono">${esc(course.level || '—')}</td>
       <td>${semCell}</td>
       <td><span class="role ${course.role}">${esc(t().roles[course.role])}</span></td></tr>`;
-  }).join('')
+  };
+  // Chronological: one section per semester, sub-sections per period (courses over both periods last).
+  const periodKey = (course) => [...new Set(course.slots.map(([p]) => p))].sort().join('');
+  const PERIOD_ORDER = ['1', '2', '12'];
+  const startYear = parseInt(cohortOf().label.slice(3), 10);
+  const termLabel = (sem) => (sem === 8 ? `VT ${startYear + 4}` : `HT ${startYear + (sem === 7 ? 3 : 4)}`);
+  const sections = [];
+  for (const sem of [7, 8, 9]) {
+    const inSem = r.courses.filter((course) => course.sem === sem);
+    if (!inSem.length) continue;
+    const periods = PERIOD_ORDER.map((key) => [key, inSem.filter((course) => periodKey(course) === key)
+      .sort((a, b) => a.slots[0][1].localeCompare(b.slots[0][1]) || a.code.localeCompare(b.code))])
+      .filter(([, list]) => list.length);
+    sections.push(`<tr class="sem-head"><th colspan="6">${esc(t().semHead(sem, termLabel(sem)))}<span>${hp(r.schedule.perSemester[sem])} hp</span></th></tr>`
+      + periods.map(([key, list]) => `<tr class="period-head"><td colspan="6">${esc(t().periodHead(key))}</td></tr>` + list.map(row).join('')).join(''));
+  }
+  const rest = r.courses.filter((course) => !course.sem);
+  if (rest.length) {
+    sections.push(`<tr class="sem-head"><th colspan="6">${esc(t().noTimetable)}<span>${hp(rest.reduce((s, course) => s + (course.counted ? course.hp : 0), 0))} hp</span></th></tr>` + rest.map(row).join(''));
+  }
+  $('course-rows').innerHTML = r.courses.length ? sections.join('')
     : `<tr><td colspan="6" class="empty">${esc(t().noCourses)}</td></tr>`;
 
   renderTimetable(r);
@@ -869,7 +905,7 @@ function renderTimetable(r) {
 function save() {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify({ cohort: $('cohort').value, profile: $('profile').value, spec: $('spec').value,
-      text: $('courses').value, semesters: state.semesters, lang: state.lang, isExample: state.isExample }));
+      text: $('courses').value, semesters: state.semesters, lang: state.langChosen ? state.lang : undefined, isExample: state.isExample }));
   } catch (e) {}
 }
 
@@ -891,12 +927,14 @@ function load(saved) {
   state.semesters = { ...(saved.semesters || {}) };
 }
 
-function setLang(lang) { state.lang = lang; renderStatic(); update(); }
+function setLang(lang) { state.lang = lang; state.langChosen = true; renderStatic(); update(); }
 
 fillSelect($('cohort'), DATA.map((c) => [c.id, c.label]), '5270');
 let saved = null;
 try { saved = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) {}
-state.lang = saved && saved.lang ? saved.lang : (/^sv\b/i.test(navigator.language || '') ? 'sv' : 'en');
+// Swedish unless the viewer has picked a language with the toggle.
+state.langChosen = !!(saved && saved.lang);
+state.lang = state.langChosen ? saved.lang : 'sv';
 if (saved && DATA.some((c) => c.id === saved.cohort)) { load(saved); state.isExample = !!saved.isExample; }
 else { load(EXAMPLE); state.isExample = true; }
 renderStatic();
