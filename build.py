@@ -4,7 +4,7 @@
     python3 build.py                                     # build from the existing data.json and courses.json
     python3 build.py --artifact <path>                   # also write a version for publishing as a claude.ai artifact
 """
-import argparse, datetime, json, os, subprocess, sys
+import argparse, base64, json, os, re, subprocess, sys
 
 here = os.path.dirname(os.path.abspath(__file__))
 args = argparse.ArgumentParser()
@@ -45,15 +45,18 @@ def compact_alternatives(courses, min_year):
 
 def artifact_version(page):
     """The claude.ai artifact host supplies its own document skeleton and icon, and needs inline assets."""
-    for tag in ('<!doctype html>', '<html lang="en">', '<head>', '</head>', '<body>', '</body>', '</html>',
-                '<meta charset="utf-8">\n', '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'):
+    page = re.sub(r'<!doctype html>\s*<html[^>]*>\s*<head>\s*<meta charset="utf-8">\s*<meta name="viewport"[^>]*>\s*', '', page, count=1)
+    for tag in ('</head>', '<body>', '</body>', '</html>'):
         page = page.replace(tag, '', 1)
-    return page.replace('<link rel="icon" type="image/png" href="favicon.png">', '').lstrip()
+    # Icons and preloads point at files next to index.html, which an artifact does not have.
+    page = re.sub(r'<link rel="(?:icon|apple-touch-icon|preload)"[^>]*>\n', '', page)
+    font = lambda m: 'url("data:font/woff2;base64,%s")' % base64.b64encode(open(os.path.join(here, m.group(1)), 'rb').read()).decode()
+    return re.sub(r'url\("(fonts/[^"]+\.woff2)"\)', font, page).lstrip()
 
 
-fetched_on = datetime.date.fromtimestamp(os.path.getmtime(os.path.join(here, 'courses.json')))
-alt = compact_alternatives(json.loads(read('courses.json')), fetched_on.year)
-fetched = fetched_on.isoformat()
+# The date the course pages were downloaded, written by scrape_courses.py.
+fetched = read('fetched.txt').strip()
+alt = compact_alternatives(json.loads(read('courses.json')), int(fetched[:4]))
 page = (read('template.html')
         .replace('/*__DATA__*/', read('data.json').strip())
         .replace('/*__ALT__*/', json.dumps(alt, ensure_ascii=False, separators=(',', ':')))

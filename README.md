@@ -45,7 +45,9 @@ and are not checked. This is an unofficial tool; confirm your plan with study co
 | `fetch.sh` | Downloads the program plan pages (Swedish and English). |
 | `scrape_courses.py` | Downloads course pages and name searches into `courses.json`. |
 | `build.py` | Embeds the data and `validator.js` into `template.html` to produce `index.html`. |
-| `favicon.png` | Site icon. |
+| `favicon.png` | Site icon (original); `favicon-64.png` and `apple-touch-icon.png` are the resized copies the page uses. |
+| `fonts/` | IBM Plex web fonts (SIL Open Font License), served from the site itself. |
+| `fetched.txt` | The date the course data was downloaded, written by `scrape_courses.py`. |
 
 ## Updating
 

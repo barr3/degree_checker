@@ -6,7 +6,7 @@ alternatives when two courses collide.
 
 Pages are cached in <cache dir>, so re-runs only download what is missing.
 """
-import html, json, os, re, sys, time, urllib.parse, urllib.request
+import datetime, html, json, os, re, sys, time, urllib.parse, urllib.request
 
 BASE = 'https://studieinfo.liu.se'
 T_CODE = re.compile(r'^T[A-Z0-9]{3}\d{2}$')
@@ -76,6 +76,8 @@ def main():
         courses[code] = parse_course(fetch(cache, f'kurs_{code}.html', f'{BASE}/kurs/{code}'))
         print(f'similar {code}: {courses[code]["n"]}', file=sys.stderr)
     json.dump(courses, open(out_path, 'w', encoding='utf-8'), ensure_ascii=False, separators=(',', ':'))
+    # build.py shows this date on the page and drops offerings from before its year.
+    open(os.path.join(os.path.dirname(out_path), 'fetched.txt'), 'w').write(datetime.date.today().isoformat() + '\n')
     print(f'wrote {out_path}: {len(courses)} courses', file=sys.stderr)
 
 
