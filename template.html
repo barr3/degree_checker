@@ -103,7 +103,31 @@ button:hover { border-color: var(--accent); color: var(--accent); }
 
 /* Results */
 .results { display: grid; gap: 22px; min-width: 0; }
-.verdict { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; padding: 18px 20px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); }
+.verdict { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 18px 20px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); }
+@media (max-width: 520px) { .verdict .export-open { grid-column: 1 / -1; justify-self: start; } }
+
+/* Export dialog */
+dialog { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); color: var(--ink); padding: 0; width: min(520px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); }
+dialog::backdrop { background: rgba(0, 0, 0, .35); }
+dialog form { display: grid; gap: 16px; padding: 20px; }
+dialog fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 8px; }
+dialog legend { font-weight: 600; font-size: 14px; margin-bottom: 6px; padding: 0; }
+.format { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; align-items: baseline; border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; cursor: pointer; font-weight: 400; }
+.format:has(input:checked) { border-color: var(--accent); }
+.format input { margin: 0; accent-color: var(--accent); }
+.format b { font-weight: 600; }
+.format span { grid-column: 2; font-size: 13px; color: var(--muted); }
+.export-status { border: 1px solid var(--line); border-left: 3px solid var(--ok); border-radius: var(--radius); padding: 10px 12px; font-size: 14px; }
+.export-status.bad { border-left-color: var(--bad); }
+.export-status strong { display: block; }
+.export-status.bad strong { color: var(--bad); }
+.export-status ul { margin: 6px 0; padding-left: 18px; display: grid; gap: 2px; }
+.export-status p { margin: 6px 0 0; color: var(--muted); }
+.export-error { color: var(--bad); font-size: 14px; margin: 0; }
+.dialog-buttons { justify-content: flex-end; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+button.primary:hover { color: var(--surface); opacity: .9; }
+button:disabled { opacity: .5; cursor: default; }
 .verdict .score { font-family: var(--font-display); font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
 .verdict .score small { font-size: 20px; color: var(--muted); }
 .verdict strong { display: block; font-size: 17px; }
@@ -251,6 +275,23 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
   </footer>
 </div>
 
+<dialog id="export-dialog" aria-labelledby="export-title">
+  <form id="export-form" method="dialog">
+    <h2 id="export-title" data-i18n="exportTitle"></h2>
+    <fieldset>
+      <legend data-i18n="exportFormat"></legend>
+      <label class="format"><input type="radio" name="format" value="pdf" id="format-pdf" checked><b>PDF</b><span data-i18n="exportPdfHint"></span></label>
+      <label class="format"><input type="radio" name="format" value="xlsx" id="format-xlsx"><b>Excel (.xlsx)</b><span data-i18n="exportXlsxHint"></span></label>
+    </fieldset>
+    <div id="export-status" class="export-status"></div>
+    <p class="export-error" id="export-error" hidden></p>
+    <div class="row dialog-buttons">
+      <button type="button" id="export-cancel" data-i18n="exportCancel"></button>
+      <button type="submit" id="export-go" class="primary"></button>
+    </div>
+  </form>
+</dialog>
+
 <script>
 const DATA = /*__DATA__*/;
 const ALT = /*__ALT__*/;
@@ -302,6 +343,23 @@ const UI = {
     ],
     assumedTitle: 'Assumed and not checked',
     unofficial: 'Unofficial tool. Check your final plan with study counselling (studievägledningen) before relying on it.',
+    exportOpen: 'Export…', exportTitle: 'Export your plan', exportFormat: 'Format',
+    exportPdfHint: 'For reading and printing, e.g. to bring to study counselling.',
+    exportXlsxHint: 'A spreadsheet you can sort and keep editing.',
+    exportCancel: 'Cancel', exportGo: 'Export', exportAnyway: 'Export anyway', exporting: 'Creating file…',
+    exportOk: 'Every checked requirement is met and there are no timetable collisions.',
+    exportProblems: 'The plan does not meet every requirement yet',
+    exportProblemsNote: 'You can export it anyway. The file will say that the plan is not complete.',
+    exportEmpty: 'Add some courses before exporting.',
+    exportFailed: 'Couldn\'t load the export tool. Check your internet connection and try again.',
+    clashItem: (a, b, sem, p, blk) => `${a} and ${b} collide (semester ${sem}, period ${p}, block ${blk})`,
+    file: {
+      title: 'Study plan', name: 'study-plan', program: 'Program', programValue: 'Civilingenjör i teknisk matematik (6CTMA), Linköping University',
+      exported: 'Exported', statusOk: 'Every checked requirement is met.', statusBad: 'NOT COMPLETE: the plan does not meet every requirement.',
+      sheetPlan: 'Plan', sheetReqs: 'Requirements', sheetClashes: 'Collisions', part: 'Part', status: 'Status', note: 'Note',
+      period: 'Period', block: 'Block', alternatives: 'Alternatives', totals: 'Credits', total: 'Counted in semesters 7–9',
+      requirement: 'Requirement', result: 'Result', courseA: 'Course 1', courseB: 'Course 2', page: (i, n) => `Page ${i} of ${n}`,
+    },
     source: (url, date) => `Course data, rules and timetables from <a href="${url}" target="_blank" rel="noopener">studieinfo.liu.se</a>, read on ${date}.`,
   },
   sv: {
@@ -349,6 +407,23 @@ const UI = {
     ],
     assumedTitle: 'Antaget och inte kontrollerat',
     unofficial: 'Inofficiellt verktyg. Stäm av din slutliga plan med studievägledningen innan du förlitar dig på den.',
+    exportOpen: 'Exportera…', exportTitle: 'Exportera planen', exportFormat: 'Format',
+    exportPdfHint: 'För att läsa och skriva ut, t.ex. till ett möte med studievägledningen.',
+    exportXlsxHint: 'Ett kalkylblad som du kan sortera och fortsätta redigera.',
+    exportCancel: 'Avbryt', exportGo: 'Exportera', exportAnyway: 'Exportera ändå', exporting: 'Skapar filen…',
+    exportOk: 'Alla kontrollerade krav är uppfyllda och det finns inga schemakrockar.',
+    exportProblems: 'Planen uppfyller inte alla krav än',
+    exportProblemsNote: 'Du kan exportera den ändå. Filen märks då med att planen inte är klar.',
+    exportEmpty: 'Lägg till kurser innan du exporterar.',
+    exportFailed: 'Kunde inte ladda exportfunktionen. Kontrollera internetanslutningen och försök igen.',
+    clashItem: (a, b, sem, p, blk) => `${a} och ${b} krockar (termin ${sem}, period ${p}, block ${blk})`,
+    file: {
+      title: 'Studieplan', name: 'studieplan', program: 'Program', programValue: 'Civilingenjör i teknisk matematik (6CTMA), Linköpings universitet',
+      exported: 'Exporterad', statusOk: 'Alla kontrollerade krav är uppfyllda.', statusBad: 'EJ KLAR: planen uppfyller inte alla krav.',
+      sheetPlan: 'Plan', sheetReqs: 'Krav', sheetClashes: 'Schemakrockar', part: 'Del', status: 'Status', note: 'Anmärkning',
+      period: 'Period', block: 'Block', alternatives: 'Alternativ', totals: 'Poäng', total: 'Räknas under termin 7–9',
+      requirement: 'Krav', result: 'Resultat', courseA: 'Kurs 1', courseB: 'Kurs 2', page: (i, n) => `Sida ${i} av ${n}`,
+    },
     source: (url, date) => `Kursdata, regler och scheman från <a href="${url}" target="_blank" rel="noopener">studieinfo.liu.se</a>, hämtade ${date}.`,
   },
 };
@@ -363,6 +438,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '
 const hp = (n) => (Math.round(n * 10) / 10).toString().replace('.', ',');
 const cohortOf = () => DATA.find((c) => c.id === $('cohort').value);
 const state = { lang: 'en', semesters: {}, isExample: false };
+let lastResult = null;
 const t = () => UI[state.lang];
 const courseName = (info) => (state.lang === 'en' ? info.ne || info.n : info.n);
 const groupName = (g) => (state.lang === 'en' ? g.name_en : g.name);
@@ -430,6 +506,36 @@ function renderPicker() {
 const slotText = (inst) => inst.map(([p, b]) => b === '-' ? `${t().period}${p} · ${t().noBlock}` : `${t().period}${p} · ${t().block} ${b}`).join(' + ');
 const instText = (insts) => insts.map(slotText).join(` ${t().or} `);
 
+// Chronological order of the plan: one section per semester with sub-sections per period
+// (courses over both periods last), then courses without a timetable. Used by the table and the exports.
+const REQ_GROUPS = [
+  ['profile-mandatory', 'profile-hp', 'profile-adv'],
+  ['spec-mandatory', 'spec-hp'],
+  ['business', 'outside', 'total', 'advanced', 'main-field'],
+];
+const PERIOD_ORDER = ['1', '2', '12'];
+const periodKey = (course) => [...new Set(course.slots.map(([p]) => p))].sort().join('');
+function termLabel(sem) {
+  const startYear = parseInt(cohortOf().label.slice(3), 10);
+  return sem === 8 ? `VT ${startYear + 4}` : `HT ${startYear + (sem === 7 ? 3 : 4)}`;
+}
+function chronological(r) {
+  const sections = [];
+  for (const sem of [7, 8, 9]) {
+    const inSem = r.courses.filter((course) => course.sem === sem);
+    if (!inSem.length) continue;
+    const periods = PERIOD_ORDER.map((key) => [key, inSem.filter((course) => periodKey(course) === key)
+      .sort((a, b) => a.slots[0][1].localeCompare(b.slots[0][1]) || a.code.localeCompare(b.code))])
+      .filter(([, list]) => list.length);
+    sections.push({ sem, label: t().semHead(sem, termLabel(sem)), hp: r.schedule.perSemester[sem], periods });
+  }
+  const rest = r.courses.filter((course) => !course.sem);
+  if (rest.length) {
+    sections.push({ sem: null, label: t().noTimetable, hp: rest.reduce((s, course) => s + (course.counted ? course.hp : 0), 0), periods: [[null, rest]] });
+  }
+  return sections;
+}
+
 function renderResults(r) {
   const met = r.reqs.filter((q) => q.ok).length, total = r.reqs.length;
   const clashes = r.schedule.collisions.length;
@@ -439,16 +545,12 @@ function renderResults(r) {
   v.innerHTML = `<div class="score">${met}<small>/${total}</small></div><div>
     <strong>${met === total ? esc(t().allMet) : esc(t().notMet(total - met))}</strong>
     <span>${met === total ? esc(t().hpCounted(hp(r.totals.totalHp))) : esc(t().notMetList(missing.join('; ')))}</span>
-    ${clashes ? `<span class="clash-line">${esc(t().clashLine(clashes))}</span>` : ''}</div>`;
+    ${clashes ? `<span class="clash-line">${esc(t().clashLine(clashes))}</span>` : ''}</div>
+    <button type="button" class="export-open" id="export-open">${esc(t().exportOpen)}</button>`;
 
   $('warnings').innerHTML = r.warnings.map((w) => `<li>${esc(w)}</li>`).join('');
 
-  const groups = [
-    ['profile-mandatory', 'profile-hp', 'profile-adv'],
-    ['spec-mandatory', 'spec-hp'],
-    ['business', 'outside', 'total', 'advanced', 'main-field'],
-  ];
-  $('reqs').innerHTML = groups.map((ids, gi) => `<div class="req-group"><h3>${esc(t().groups[gi])}</h3>${ids.map((id) => {
+  $('reqs').innerHTML = REQ_GROUPS.map((ids, gi) => `<div class="req-group"><h3>${esc(t().groups[gi])}</h3>${ids.map((id) => {
     const q = r.reqs.find((x) => x.id === id);
     let meter = '';
     if (q.progress && q.progress.target) {
@@ -476,26 +578,9 @@ function renderResults(r) {
       <td>${semCell}</td>
       <td><span class="role ${course.role}">${esc(t().roles[course.role])}</span></td></tr>`;
   };
-  // Chronological: one section per semester, sub-sections per period (courses over both periods last).
-  const periodKey = (course) => [...new Set(course.slots.map(([p]) => p))].sort().join('');
-  const PERIOD_ORDER = ['1', '2', '12'];
-  const startYear = parseInt(cohortOf().label.slice(3), 10);
-  const termLabel = (sem) => (sem === 8 ? `VT ${startYear + 4}` : `HT ${startYear + (sem === 7 ? 3 : 4)}`);
-  const sections = [];
-  for (const sem of [7, 8, 9]) {
-    const inSem = r.courses.filter((course) => course.sem === sem);
-    if (!inSem.length) continue;
-    const periods = PERIOD_ORDER.map((key) => [key, inSem.filter((course) => periodKey(course) === key)
-      .sort((a, b) => a.slots[0][1].localeCompare(b.slots[0][1]) || a.code.localeCompare(b.code))])
-      .filter(([, list]) => list.length);
-    sections.push(`<tr class="sem-head"><th colspan="6">${esc(t().semHead(sem, termLabel(sem)))}<span>${hp(r.schedule.perSemester[sem])} hp</span></th></tr>`
-      + periods.map(([key, list]) => `<tr class="period-head"><td colspan="6">${esc(t().periodHead(key))}</td></tr>` + list.map(row).join('')).join(''));
-  }
-  const rest = r.courses.filter((course) => !course.sem);
-  if (rest.length) {
-    sections.push(`<tr class="sem-head"><th colspan="6">${esc(t().noTimetable)}<span>${hp(rest.reduce((s, course) => s + (course.counted ? course.hp : 0), 0))} hp</span></th></tr>` + rest.map(row).join(''));
-  }
-  $('course-rows').innerHTML = r.courses.length ? sections.join('')
+  $('course-rows').innerHTML = r.courses.length ? chronological(r).map((sec) =>
+    `<tr class="sem-head"><th colspan="6">${esc(sec.label)}<span>${hp(sec.hp)} hp</span></th></tr>`
+      + sec.periods.map(([key, list]) => (key ? `<tr class="period-head"><td colspan="6">${esc(t().periodHead(key))}</td></tr>` : '') + list.map(row).join('')).join('')).join('')
     : `<tr><td colspan="6" class="empty">${esc(t().noCourses)}</td></tr>`;
 
   renderTimetable(r);
@@ -548,6 +633,233 @@ function renderTimetable(r) {
   $('timetable').innerHTML = `<h2>${esc(t().ttTitle)}</h2><div class="tt-summary">${tiles}</div>${body}<p class="hint">${esc(t().ttHint)}</p>`;
 }
 
+// ---- Export (PDF and Excel). The libraries are loaded from jsDelivr only when someone exports. ----
+const LIBS = {
+  pdf: [
+    ['https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js', 'sha384-qovJwSBbRDPP5cEjCp8S0UP66wrvnjaa60XMOGzTNanrThcrGfXfnZkvgY8N1KT3'],
+    ['https://cdn.jsdelivr.net/npm/jspdf-autotable@5.0.8/dist/jspdf.plugin.autotable.min.js', 'sha384-5jk55M0XWoAw7LyhlXJe19ErOr3doBAPzxw9vahPFbvolqWa2yDk4fhHa2zuYeOa'],
+  ],
+  // SheetJS 0.18.5 is the last release on npm; its known issues are in reading files, and this page only writes them.
+  xlsx: [['https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js', 'sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw']],
+};
+const loadedScripts = {};
+function loadScript([src, integrity]) {
+  loadedScripts[src] = loadedScripts[src] || new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.integrity = integrity; s.crossOrigin = 'anonymous';
+    s.onload = resolve;
+    s.onerror = () => { delete loadedScripts[src]; s.remove(); reject(new Error(`Could not load ${src}`)); };
+    document.head.appendChild(s);
+  });
+  return loadedScripts[src];
+}
+async function loadLibs(format) { for (const lib of LIBS[format]) await loadScript(lib); }
+
+function planProblems(r) {
+  return [
+    ...r.reqs.filter((q) => !q.ok).map((q) => `${q.title}: ${q.detail}`),
+    ...r.schedule.collisions.map((x) => t().clashItem(x.a, x.b, x.sem, x.period, x.block)),
+  ];
+}
+
+// Plain-text version of a collision alternative, for the exported files.
+function altPlain(o) {
+  if (o.type === 'move') return `${t().move}: ${t().moveText(o.code, o.sem).replace(/\.$/, '')} (${instText(o.slots)}).`;
+  const g = o.group;
+  const where = `${g.t}, ${slotText(g.s)}, ${g.campus}`;
+  if (o.type === 'program') return `${t().program}: ${t().programText(o.code, g.p.join(', '))}. ${where}. ${t().fits(o.sem)}.`;
+  return `${t().similar}: ${o.code} ${courseName(o.info)} (${hp(o.info.hp || 0)} hp). ${where}. ${t().fits(o.sem)}. ${t().similarCounts(o.inPlan)}`;
+}
+
+function exportData(r) {
+  const c = cohortOf();
+  const F = t().file;
+  const problems = planProblems(r);
+  const rows = chronological(r).flatMap((sec) => sec.periods.flatMap(([key, list]) => list.map((course) => ({
+    term: sec.sem ? `${sec.sem} (${termLabel(sec.sem)})` : '–',
+    period: key ? (key === '12' ? '1–2' : key) : '–',
+    block: course.slots ? [...new Set(course.slots.map(([, b]) => b))].join(', ').replace('-', '–') : '–',
+    code: course.code, name: course.name || '', hp: course.hp, level: course.level || '',
+    role: t().roles[course.role], note: course.note || '', counted: course.counted,
+    clashing: r.schedule.collisions.some((x) => x.a === course.code || x.b === course.code),
+  }))));
+  return {
+    ok: problems.length === 0, problems, rows, r,
+    meta: [
+      [F.program, F.programValue],
+      [t().cohort, c.label],
+      [t().profile, groupName(c.groups[$('profile').value])],
+      [t().spec, groupName(c.groups[$('spec').value])],
+      [F.exported, new Date().toLocaleDateString('sv-SE')],
+    ],
+    reqGroups: REQ_GROUPS.map((ids, gi) => ({ title: t().groups[gi], reqs: ids.map((id) => r.reqs.find((q) => q.id === id)) })),
+    totals: [7, 8, 9].map((sem) => [`${t().thSemester} ${sem} (${termLabel(sem)})`, r.schedule.perSemester[sem]]),
+    collisions: r.schedule.collisions.map((x) => ({ ...x, text: t().clashItem(x.a, x.b, x.sem, x.period, x.block), alts: x.options.slice(0, 10).map(altPlain) })),
+    risky: r.schedule.collisions.some((x) => x.options.slice(0, 10).some((o) => o.type !== 'move')),
+  };
+}
+
+function exportFilename(ext) {
+  return `${t().file.name}-${cohortOf().label.replace(' ', '')}-${$('profile').value}-${$('spec').value}.${ext}`;
+}
+
+function exportPdf(d) {
+  const F = t().file;
+  const doc = new window.jspdf.jsPDF({ unit: 'pt', format: 'a4' });
+  const M = 40, W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+  const GREEN = [43, 117, 71], RED = [178, 63, 44], GREY = [102, 102, 100], BAND = [242, 242, 240];
+  let y = M + 6;
+  const space = (h) => { if (y + h > H - M - 20) { doc.addPage(); y = M; } };
+  const para = (text, { size = 10, style = 'normal', color = [27, 27, 27], indent = 0, gap = 4 } = {}) => {
+    doc.setFont('helvetica', style); doc.setFontSize(size); doc.setTextColor(...color);
+    const lines = doc.splitTextToSize(text, W - 2 * M - indent);
+    space(lines.length * size * 1.25);
+    doc.text(lines, M + indent, y + size * 0.8);
+    y += lines.length * size * 1.25 + gap;
+  };
+  const heading = (text) => { y += 10; para(text, { size: 13, style: 'bold', gap: 6 }); };
+  const table = (opts) => {
+    window.autoTable(doc, { startY: y, margin: { left: M, right: M, bottom: M + 20 }, theme: 'plain', rowPageBreak: 'avoid',
+      styles: { font: 'helvetica', fontSize: 9, cellPadding: 4, textColor: [27, 27, 27], lineColor: [225, 225, 222], lineWidth: { bottom: 0.5 } },
+      headStyles: { fontStyle: 'bold', textColor: GREY, fontSize: 8 }, ...opts });
+    y = doc.lastAutoTable.finalY + 8;
+  };
+
+  para(`TMA Degree Check – ${F.title}`, { size: 18, style: 'bold', gap: 10 });
+  for (const [k, v] of d.meta) {
+    doc.setFontSize(10); doc.setFont('helvetica', 'bold'); doc.setTextColor(27, 27, 27); doc.text(`${k}:`, M, y + 8);
+    doc.setFont('helvetica', 'normal'); doc.text(doc.splitTextToSize(v, W - 2 * M - 120), M + 120, y + 8);
+    y += 14;
+  }
+  y += 8;
+
+  // Status box: green when complete, red with the list of problems otherwise.
+  const statusLines = d.ok ? [F.statusOk] : [F.statusBad, ...d.problems.map((p) => `•  ${p}`)];
+  doc.setFontSize(10);
+  const wrapped = statusLines.map((l) => doc.splitTextToSize(l, W - 2 * M - 24));
+  const boxH = wrapped.reduce((h, l) => h + l.length * 12.5, 0) + 16;
+  space(boxH);
+  doc.setDrawColor(...(d.ok ? GREEN : RED)); doc.setLineWidth(1); doc.rect(M, y, W - 2 * M, boxH);
+  doc.setFillColor(...(d.ok ? GREEN : RED)); doc.rect(M, y, 3, boxH, 'F');
+  let ty = y + 8;
+  wrapped.forEach((lines, i) => {
+    doc.setFont('helvetica', i === 0 ? 'bold' : 'normal'); doc.setTextColor(...(i === 0 ? (d.ok ? GREEN : RED) : [27, 27, 27]));
+    doc.text(lines, M + 12, ty + 9); ty += lines.length * 12.5;
+  });
+  y += boxH + 10;
+
+  heading(F.sheetReqs);
+  table({
+    head: [[F.status, F.requirement, F.result]],
+    body: d.reqGroups.flatMap((g) => [
+      [{ content: g.title, colSpan: 3, styles: { fontStyle: 'bold', fillColor: BAND } }],
+      ...g.reqs.map((q) => [{ content: q.ok ? t().met : t().notMetPill, styles: { textColor: q.ok ? GREEN : RED, fontStyle: 'bold' } }, q.title, q.detail]),
+    ]),
+    columnStyles: { 0: { cellWidth: 62 }, 1: { cellWidth: 170 } },
+  });
+
+  heading(t().yourCourses);
+  const sections = chronological(d.r);
+  table({
+    head: [[t().thSemester, F.period, F.block, t().thCode, t().thCourse, 'hp', t().thLevel, t().thCounts]],
+    body: sections.flatMap((sec) => [
+      [{ content: `${sec.label} – ${hp(sec.hp)} hp`, colSpan: 8, styles: { fontStyle: 'bold', fillColor: BAND } }],
+      ...d.rows.filter((row) => row.term === (sec.sem ? `${sec.sem} (${termLabel(sec.sem)})` : '–')).map((row) => [
+        row.term.split(' ')[0], row.period, row.block,
+        { content: row.code, styles: row.clashing ? { textColor: RED, fontStyle: 'bold' } : {} },
+        row.note ? `${row.name}\n${row.note}` : row.name, hp(row.hp), row.level,
+        { content: row.role, styles: row.counted ? {} : { textColor: GREY } },
+      ]),
+    ]),
+    columnStyles: { 0: { cellWidth: 44 }, 1: { cellWidth: 38 }, 2: { cellWidth: 34 }, 3: { cellWidth: 50 }, 5: { cellWidth: 28, halign: 'right' }, 6: { cellWidth: 34 }, 7: { cellWidth: 82 } },
+  });
+  para(`${F.total}: ${hp(d.r.totals.totalHp)} hp. ${d.totals.map(([k, v]) => `${k}: ${hp(v)} hp`).join(', ')}.`, { size: 9, color: GREY });
+
+  heading(t().ttTitle);
+  if (!d.collisions.length) para(t().noClash);
+  for (const x of d.collisions) {
+    para(x.text, { style: 'bold', color: RED, gap: 2 });
+    x.alts.forEach((a) => para(`–  ${a}`, { size: 9, indent: 12, gap: 2 }));
+    y += 4;
+  }
+  if (d.risky) para(`${t().caveatTitle} ${t().caveat}`, { size: 9, color: GREY });
+
+  heading(t().assumedTitle);
+  t().assumed.forEach((a) => para(`•  ${a}`, { size: 9, gap: 2 }));
+
+  // Footer on every page.
+  const pages = doc.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) {
+    doc.setPage(i); doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...GREY);
+    doc.text(doc.splitTextToSize(t().unofficial, W - 2 * M - 70), M, H - M + 4);
+    doc.text(F.page(i, pages), W - M, H - M + 4, { align: 'right' });
+  }
+  doc.save(exportFilename('pdf'));
+}
+
+function exportXlsx(d) {
+  const F = t().file;
+  const XLSX = window.XLSX;
+  const wb = XLSX.utils.book_new();
+  const sheet = (rows, widths) => { const ws = XLSX.utils.aoa_to_sheet(rows); ws['!cols'] = widths.map((wch) => ({ wch })); return ws; };
+
+  const plan = [
+    [`TMA Degree Check – ${F.title}`], ...d.meta, [],
+    [d.ok ? F.statusOk : F.statusBad], ...d.problems.map((p) => ['', p]), [],
+    [t().thSemester, F.period, F.block, t().thCode, t().thCourse, 'hp', t().thLevel, t().thCounts, F.note],
+    ...d.rows.map((row) => [row.term, row.period, row.block, row.code, row.name, row.hp, row.level, row.role, row.note]),
+    [], [F.totals], ...d.totals, [F.total, d.r.totals.totalHp], [],
+    [t().unofficial],
+  ];
+  XLSX.utils.book_append_sheet(wb, sheet(plan, [16, 8, 8, 10, 46, 6, 7, 22, 50]), F.sheetPlan);
+
+  const reqs = [[F.part, F.requirement, F.status, F.result],
+    ...d.reqGroups.flatMap((g) => g.reqs.map((q) => [g.title, q.title, q.ok ? t().met : t().notMetPill, q.detail]))];
+  XLSX.utils.book_append_sheet(wb, sheet(reqs, [24, 44, 12, 90]), F.sheetReqs);
+
+  if (d.collisions.length) {
+    const clashes = [[t().thSemester, F.period, F.block, F.courseA, F.courseB, F.alternatives],
+      ...d.collisions.map((x) => [x.sem, x.period, x.block, x.a, x.b, x.alts.join('\n')])];
+    if (d.risky) clashes.push([], [`${t().caveatTitle} ${t().caveat}`]);
+    XLSX.utils.book_append_sheet(wb, sheet(clashes, [8, 8, 8, 10, 10, 110]), F.sheetClashes);
+  }
+  XLSX.writeFile(wb, exportFilename('xlsx'));
+}
+
+function openExport() {
+  const r = lastResult;
+  const problems = planProblems(r);
+  const empty = r.courses.length === 0;
+  const status = $('export-status');
+  status.className = 'export-status' + (empty || problems.length ? ' bad' : '');
+  status.innerHTML = empty ? `<strong>${esc(t().exportEmpty)}</strong>`
+    : problems.length ? `<strong>${esc(t().exportProblems)}</strong><ul>${problems.map((p) => `<li>${esc(p)}</li>`).join('')}</ul><p>${esc(t().exportProblemsNote)}</p>`
+    : `<strong>✓ ${esc(t().exportOk)}</strong>`;
+  $('export-go').textContent = problems.length && !empty ? t().exportAnyway : t().exportGo;
+  $('export-go').disabled = empty;
+  $('export-error').hidden = true;
+  $('export-dialog').showModal();
+}
+
+async function runExport(e) {
+  e.preventDefault();
+  const format = $('format-xlsx').checked ? 'xlsx' : 'pdf';
+  const go = $('export-go'), label = go.textContent;
+  go.disabled = true; go.textContent = t().exporting; $('export-error').hidden = true;
+  try {
+    await loadLibs(format);
+    const d = exportData(lastResult);
+    if (format === 'pdf') exportPdf(d); else exportXlsx(d);
+    $('export-dialog').close();
+  } catch (err) {
+    console.error(err);
+    $('export-error').textContent = t().exportFailed;
+    $('export-error').hidden = false;
+  } finally {
+    go.disabled = false; go.textContent = label;
+  }
+}
+
 function save() {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify({ cohort: $('cohort').value, profile: $('profile').value, spec: $('spec').value,
@@ -559,6 +871,7 @@ function update() {
   $('example-tag').hidden = !state.isExample;
   const r = validate(cohortOf(), $('profile').value, $('spec').value, $('courses').value,
     { lang: state.lang, semesters: state.semesters, alt: ALT });
+  lastResult = r;
   renderResults(r);
   renderPicker();
   save();
@@ -604,6 +917,9 @@ $('timetable').addEventListener('click', (e) => {
   if (b) { state.semesters[b.dataset.move] = Number(b.dataset.to); state.isExample = false; update(); }
 });
 $('plan').addEventListener('submit', (e) => e.preventDefault());
+$('verdict').addEventListener('click', (e) => { if (e.target.closest('#export-open')) openExport(); });
+$('export-cancel').addEventListener('click', () => $('export-dialog').close());
+$('export-form').addEventListener('submit', runExport);
 </script>
 </body>
 </html>

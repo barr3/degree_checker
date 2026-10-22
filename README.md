@@ -23,6 +23,12 @@ unless the program plan says they are coordinated. For each collision it suggest
 
 Options 2 and 3 are not guaranteed to work (seats, approval, how the course counts), and the page says so.
 
+The plan can be exported as a PDF or an Excel file (.xlsx). If the plan does not meet every requirement
+or has collisions, the export dialog lists the problems first, and the exported file is marked as not
+complete. The export libraries (jsPDF, jsPDF-AutoTable, SheetJS) are loaded from jsDelivr, pinned to exact
+versions with integrity hashes, only when someone exports. Downloads do not work when the page is viewed as
+a claude.ai artifact.
+
 Years 1–3, the thesis, the language requirement and overlapping course content are assumed to be fine
 and are not checked. This is an unofficial tool; confirm your plan with study counselling.
 
