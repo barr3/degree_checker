@@ -22,6 +22,12 @@ for cid, label in COHORTS.items():
     rows = parse(f'{sys.argv[1]}/page_{cid}.html')
     names = {k: html.unescape(v).replace('Masterprofil ', '').replace('Teknisk inriktning ', '')
              for k, v in re.findall(r'<option[^>]*value="(T[MI][A-Z]{2})"[^>]*>([^<]*)</option>', h)}
+    # English names come from the English version of the same page.
+    h_en = open(f'{sys.argv[1]}/page_{cid}_en.html', encoding='utf-8').read()
+    names_en = {k: html.unescape(v).replace('Master Profile in ', '').replace('Specialization ', '')
+                for k, v in re.findall(r'<option[^>]*value="(T[MI][A-Z]{2})"[^>]*>([^<]*)</option>', h_en)}
+    course_en = {k: re.sub(r'\s+', ' ', html.unescape(v)).strip()
+                 for k, v in re.findall(r'href="/en/kurs/([A-Z0-9]+)/[^"]*">([^<]*)</a>', h_en)}
     biz_txt = re.search(r'Företags- och affärsmässiga villkor skall minst 6 ?hp vara godkända av följande kurser(.*?)(Att kommunicera|Maximalt)', t).group(1)
     business = sorted(set(re.findall(CODE, biz_txt)) | {r['code'] for r in rows if r['sem'] >= 7 and r['spec'] == '' and r['vof'] == 'o/v'})
     rules = dict(
@@ -35,12 +41,27 @@ for cid, label in COHORTS.items():
     def put(d, code, vof):
         if code not in d or RANK[vof] > RANK[d[code]]: d[code] = vof
     for r in rows:
-        c = courses.setdefault(r['code'], dict(n=r['name'], hp=r['hp'], l=r['level'], tm='3392' in r['fos']))
+        c = courses.setdefault(r['code'], dict(n=r['name'], ne=course_en.get(r['code'], r['name']), hp=r['hp'], l=r['level'], tm='3392' in r['fos']))
         if c['hp'] != r['hp']: print('hp mismatch', cid, r['code'], c['hp'], r['hp'], file=sys.stderr)
+        # "Denna kurs och TATA66 ... samordnas och kan läsas samtidigt": a shared block is not a collision.
+        for other in re.findall(r'Denna kurs och (' + CODE + r')[^.]*samordnas', r['note']):
+            if other not in c.setdefault('coord', []): c['coord'].append(other)
+        if 7 <= r['sem'] <= 9:
+            # Semesters the plan lists the course in, and its timetable per term (HT = 7 and 9, VT = 8).
+            # Each instance is a list of [period, block] slots; block '-' means unscheduled.
+            # A course marked * runs over several periods (one instance); otherwise each period is its own instance.
+            if r['sem'] not in c.setdefault('sem', []): c['sem'].append(r['sem'])
+            inst = c.setdefault('s', {}).setdefault('VT' if r['sem'] == 8 else 'HT', [])
+            slot = [r['period'], r['block']]
+            if r['hp_raw'].endswith('*'):
+                if not inst: inst.append([])
+                if slot not in inst[0]: inst[0].append(slot)
+            elif [slot] not in inst:
+                inst.append([slot])
         if r['sem'] <= 6: put(early, r['code'], r['vof'])
         elif r['spec'] == '': put(general, r['code'], r['vof'])
         else:
-            g = groups.setdefault(r['spec'], dict(name=names[r['spec']], kind='profile' if r['spec'].startswith('TM') else 'spec', c={}))
+            g = groups.setdefault(r['spec'], dict(name=names[r['spec']], name_en=names_en.get(r['spec'], names[r['spec']]), kind='profile' if r['spec'].startswith('TM') else 'spec', c={}))
             put(g['c'], r['code'], r['vof'])
     out.append(dict(id=cid, label=label, rules=rules, business=business, courses=courses,
                     groups=dict(sorted(groups.items(), key=lambda kv: kv[1]['name'])), general=general, early=early))

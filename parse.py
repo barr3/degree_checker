@@ -17,12 +17,15 @@ def parse(path):
             for d in re.finditer(r'<tr class="details-row other-information-(\d+)".*?<td colspan="7">(.*?)</td>', spec, re.S):
                 txt = re.sub(r'<[^>]+>', ' ', d.group(2))
                 notes[d.group(1)] = re.sub(r'\s+', ' ', html.unescape(txt)).strip()
-            for r in re.finditer(r'<tr class="main-row[^"]*"\s+data-course-code="([^"]+)"\s+data-field-of-study="([^"]*)"\s+data-vof="([^"]*)"\s+data-id="(\d+)">(.*?)</tr>', spec, re.S):
-                code, fos, vof, rid, body = r.groups()
-                tds = [re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', t))).strip() for t in re.findall(r'<td>(.*?)</td>', body, re.S)]
-                hp = tds[2]
-                rows.append(dict(sem=sem, spec=sc, code=code, name=tds[1], hp=float(hp.rstrip('*').replace(',', '.')) if hp.rstrip('*') else None,
-                                 hp_raw=hp, level=tds[3], block=tds[4], vof=vof, fos=[f for f in fos.split('|') if f], note=notes.get(rid, '')))
+            for tbody in re.split(r'<tbody class="period">', spec)[1:]:
+                pm = re.search(r'<th colspan="7">\s*Period (\d+)', tbody)
+                period = int(pm.group(1)) if pm else None
+                for r in re.finditer(r'<tr class="main-row[^"]*"\s+data-course-code="([^"]+)"\s+data-field-of-study="([^"]*)"\s+data-vof="([^"]*)"\s+data-id="(\d+)">(.*?)</tr>', tbody, re.S):
+                    code, fos, vof, rid, body = r.groups()
+                    tds = [re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', ' ', t))).strip() for t in re.findall(r'<td>(.*?)</td>', body, re.S)]
+                    hp = tds[2]
+                    rows.append(dict(sem=sem, spec=sc, code=code, name=tds[1], hp=float(hp.rstrip('*').replace(',', '.')) if hp.rstrip('*') else None,
+                                     hp_raw=hp, level=tds[3], period=period, block=tds[4], vof=vof, fos=[f for f in fos.split('|') if f], note=notes.get(rid, '')))
     return rows
 
 if __name__ == '__main__':

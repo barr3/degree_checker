@@ -5,17 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Check a Teknisk matematik (6CTMA, Linköping University) course plan for semesters 7–9 against the master profile, technical specialization and degree requirements.">
 <title>TMA Degree Check</title>
+<link rel="icon" type="image/png" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
-/* Layout: a two-column audit sheet. Plan inputs on the left, the requirement checklist on the right, course breakdown below. */
+/* Layout: a two-column audit sheet. Plan inputs on the left, the requirement checklist on the right, course breakdown and timetable below. */
 :root {
   --paper: #f2f4f3;
   --surface: #ffffff;
   --ink: #17201e;
   --muted: #5a6662;
-  --line: #d6dddA;
+  --line: #d6ddda;
   --accent: #1d5d73;
   --accent-soft: #e2edf1;
   --ok: #2b7547;
@@ -54,7 +55,11 @@ body {
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   display: grid; gap: 28px;
 }
-header { display: grid; gap: 6px; }
+header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; align-items: start; }
+header > :not(.lang) { grid-column: 1; }
+.lang { grid-column: 2; grid-row: 1 / span 3; display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.lang button { border: 0; border-radius: 0; padding: 6px 10px; font-family: var(--font-mono); font-size: 12px; }
+.lang button[aria-pressed="true"] { background: var(--accent); color: var(--surface); }
 .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(30px, 5vw, 42px); line-height: 1.05; margin: 0; text-wrap: balance; }
 header p { margin: 0; color: var(--muted); max-width: 68ch; }
@@ -73,7 +78,7 @@ select, textarea {
   padding: 9px 10px; width: 100%;
 }
 textarea { font-family: var(--font-mono); font-size: 14px; min-height: 150px; resize: vertical; line-height: 1.6; }
-select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .hint { font-size: 13px; color: var(--muted); margin: 0; }
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 button {
@@ -81,6 +86,8 @@ button {
   border: 1px solid var(--line); background: var(--surface); color: var(--ink);
 }
 button:hover { border-color: var(--accent); color: var(--accent); }
+.lang button:hover { color: var(--accent); }
+.lang button[aria-pressed="true"]:hover { color: var(--surface); }
 .example-tag { font-size: 12px; font-family: var(--font-mono); background: var(--warn-soft); color: var(--warn); padding: 2px 8px; border-radius: 4px; }
 
 /* Course picker */
@@ -102,20 +109,21 @@ button:hover { border-color: var(--accent); color: var(--accent); }
 .verdict .score { font-family: var(--font-display); font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
 .verdict .score small { font-size: 20px; color: var(--muted); }
 .verdict strong { display: block; font-size: 17px; }
-.verdict span { color: var(--muted); font-size: 14px; }
+.verdict span { color: var(--muted); font-size: 14px; display: block; }
+.verdict .clash-line { color: var(--bad); }
 .verdict.all-ok { border-color: var(--ok); background: var(--ok-soft); }
-.verdict.all-ok .score { color: var(--ok); }
-.verdict.some-bad .score { color: var(--bad); }
+.verdict.reqs-ok .score { color: var(--ok); }
+.verdict.reqs-bad .score { color: var(--bad); }
+.verdict.has-clash { border-color: var(--bad); }
 
 .warnings { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
 .warnings li { background: var(--warn-soft); color: var(--warn); border-radius: 6px; padding: 8px 12px; font-size: 14px; }
 
 .req-group { display: grid; gap: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
 .req-group > h3 { padding: 12px 18px 10px; border-bottom: 1px solid var(--line); }
-.req { display: grid; grid-template-columns: 86px minmax(0, 1fr); gap: 4px 14px; padding: 12px 18px; border-bottom: 1px solid var(--line); }
+.req { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 4px 14px; padding: 12px 18px; border-bottom: 1px solid var(--line); }
 .req:last-child { border-bottom: 0; }
-@media (max-width: 520px) { .req { grid-template-columns: minmax(0, 1fr); padding: 12px 14px; } .pill { grid-row: auto; } .meter { grid-column: 1; } }
-.pill { grid-row: span 2; align-self: start; justify-self: start; font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; }
+.pill { grid-row: span 2; align-self: start; justify-self: start; font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
 .pill.ok { background: var(--ok-soft); color: var(--ok); }
 .pill.bad { background: var(--bad-soft); color: var(--bad); }
 .req-title { font-weight: 600; }
@@ -123,14 +131,19 @@ button:hover { border-color: var(--accent); color: var(--accent); }
 .meter { grid-column: 2; height: 6px; background: var(--paper); border-radius: 3px; position: relative; overflow: hidden; margin-top: 4px; max-width: 420px; }
 .meter i { position: absolute; inset: 0 auto 0 0; background: var(--ok); border-radius: 3px; }
 .meter.bad i { background: var(--bad); }
+@media (max-width: 520px) { .req { grid-template-columns: minmax(0, 1fr); padding: 12px 14px; } .pill { grid-row: auto; } .meter { grid-column: 1; } }
 
 .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { font-family: var(--font-mono); font-weight: 500; font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
 tbody tr:last-child td { border-bottom: 0; }
+tfoot td { border-top: 1px solid var(--line); border-bottom: 0; color: var(--muted); font-size: 13px; }
 td.num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 td.code { font-family: var(--font-mono); white-space: nowrap; }
+tr.clashing td.code { color: var(--bad); font-weight: 500; }
+td select { width: auto; padding: 4px 6px; font-size: 13px; font-family: var(--font-mono); }
+.slots { display: block; font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); white-space: nowrap; margin-top: 3px; }
 .role { font-size: 12px; font-weight: 500; padding: 2px 7px; border-radius: 4px; white-space: nowrap; background: var(--paper); color: var(--muted); }
 .role.profile, .role.spec { background: var(--accent-soft); color: var(--accent); }
 .role.outside { background: var(--warn-soft); color: var(--warn); }
@@ -138,46 +151,68 @@ td.code { font-family: var(--font-mono); white-space: nowrap; }
 .course-note { display: block; font-size: 12.5px; color: var(--muted); }
 .empty { padding: 18px; color: var(--muted); }
 
+/* Timetable */
+.tt-summary { display: flex; flex-wrap: wrap; gap: 8px; }
+.sem-tile { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; display: grid; min-width: 104px; }
+.sem-tile b { font-family: var(--font-display); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.sem-tile span { font-size: 12px; color: var(--muted); }
+.ok-note { background: var(--ok-soft); color: var(--ok); border-radius: 8px; padding: 10px 14px; font-size: 14px; margin: 0; }
+.caveat { background: var(--warn-soft); color: var(--warn); border-radius: 8px; padding: 12px 14px; font-size: 14px; margin: 0; }
+.caveat strong { display: block; }
+.clash { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--bad); border-radius: 10px; padding: 16px 18px; display: grid; gap: 12px; min-width: 0; }
+.clash-head { display: grid; gap: 2px; }
+.clash-head strong { font-size: 16px; }
+.clash-head span { color: var(--muted); font-size: 14px; }
+.alts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.alts li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 10px 12px; background: var(--paper); border-radius: 6px; font-size: 14px; }
+.alts li > div { min-width: 0; overflow-wrap: anywhere; }
+.alt-kind { font-family: var(--font-mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--accent); display: block; }
+.alt-meta { color: var(--muted); font-size: 13px; display: block; }
+.search-links { font-size: 13px; color: var(--muted); }
+a { color: var(--accent); }
+
 .assumed { display: grid; gap: 8px; }
 .assumed ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14px; display: grid; gap: 4px; max-width: 75ch; }
 footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 4px; }
-footer a, .assumed a { color: var(--accent); }
 @media (prefers-reduced-motion: no-preference) { .meter i { transition: width .25s ease; } }
 </style>
 </head>
 <body>
-
 <div class="wrap">
   <header>
-    <div class="eyebrow">6CTMA · Civilingenjör i teknisk matematik · Linköping</div>
+    <div class="eyebrow" data-i18n="eyebrow"></div>
     <h1>TMA Degree Check</h1>
-    <p>Choose your admission year, master profile and technical specialization, then list the courses you have taken or plan to take in semesters 7–9. The checklist updates as you type.</p>
+    <p data-i18n="intro"></p>
+    <div class="lang" role="group" aria-label="Language / Språk">
+      <button type="button" id="lang-sv" lang="sv">Svenska</button>
+      <button type="button" id="lang-en" lang="en">English</button>
+    </div>
   </header>
 
   <div class="layout">
     <form class="panel" id="plan" autocomplete="off">
       <div class="field">
-        <label for="cohort">Admission year</label>
+        <label for="cohort" data-i18n="cohort"></label>
         <select id="cohort"></select>
       </div>
       <div class="field">
-        <label for="profile">Master profile</label>
+        <label for="profile" data-i18n="profile"></label>
         <select id="profile"></select>
       </div>
       <div class="field">
-        <label for="spec">Technical specialization</label>
+        <label for="spec" data-i18n="spec"></label>
         <select id="spec"></select>
       </div>
       <div class="field">
         <div class="row" style="justify-content: space-between;">
-          <label for="courses">Your courses, semesters 7–9</label>
-          <span class="example-tag" id="example-tag" hidden>Example plan</span>
+          <label for="courses" data-i18n="courses"></label>
+          <span class="example-tag" id="example-tag" data-i18n="exampleTag" hidden></span>
         </div>
         <textarea id="courses" spellcheck="false" placeholder="TAMS46, TDDE09, TAMS48, …"></textarea>
-        <p class="hint">Course codes separated by commas or new lines. For a course outside the program plan, add its credits and, if it is advanced level, <code>:A</code>. For example <code>ABC123:7.5:A</code>.</p>
+        <p class="hint" data-i18n-html="coursesHint"></p>
         <div class="row">
-          <button type="button" id="clear">Clear list</button>
-          <button type="button" id="example">Load example</button>
+          <button type="button" id="clear" data-i18n="clear"></button>
+          <button type="button" id="example" data-i18n="loadExample"></button>
         </div>
       </div>
       <div class="picker" id="picker"></div>
@@ -188,57 +223,153 @@ footer a, .assumed a { color: var(--accent); }
       <ul class="warnings" id="warnings"></ul>
       <div id="reqs" class="results"></div>
       <div class="results">
-        <h2>Your courses</h2>
+        <h2 data-i18n="yourCourses"></h2>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Code</th><th>Course</th><th style="text-align:right">hp</th><th>Level</th><th>Counts toward</th></tr></thead>
+            <thead><tr>
+              <th data-i18n="thCode"></th><th data-i18n="thCourse"></th><th style="text-align:right">hp</th>
+              <th data-i18n="thLevel"></th><th data-i18n="thSemester"></th><th data-i18n="thCounts"></th>
+            </tr></thead>
             <tbody id="course-rows"></tbody>
           </table>
         </div>
       </div>
+      <div class="results" id="timetable"></div>
       <div class="assumed">
-        <h2>Assumed and not checked</h2>
-        <ul>
-          <li>Years 1–3 are complete (180 hp, all mandatory courses).</li>
-          <li>The thesis (30 hp, advanced level in Tillämpad matematik) is done.</li>
-          <li>The language requirement is met (thesis in English, a 6 hp language course, or a semester abroad).</li>
-          <li>No two courses overlap in content. Overlapping courses cannot both count toward the degree.</li>
-          <li>Your courses fit the timetable blocks.</li>
-        </ul>
+        <h2 data-i18n="assumedTitle"></h2>
+        <ul id="assumed"></ul>
       </div>
     </section>
   </div>
 
   <footer>
-    <span>Unofficial tool. Check your final plan with study counselling (studievägledningen) before relying on it.</span>
-    <span>Course data and rules from the <a id="source" href="https://studieinfo.liu.se/program/6CTMA" target="_blank" rel="noopener">program plan on studieinfo.liu.se</a>, read on __FETCHED__.</span>
+    <span data-i18n="unofficial"></span>
+    <span id="source-line"></span>
   </footer>
 </div>
 
 <script>
 const DATA = /*__DATA__*/;
+const ALT = /*__ALT__*/;
 /*__VALIDATOR__*/
 
+const UI = {
+  en: {
+    eyebrow: '6CTMA · Civilingenjör i teknisk matematik · Linköping',
+    intro: 'Choose your admission year, master profile and technical specialization, then list the courses you have taken or plan to take in semesters 7–9. The checklist updates as you type.',
+    cohort: 'Admission year', profile: 'Master profile', spec: 'Technical specialization',
+    courses: 'Your courses, semesters 7–9', exampleTag: 'Example plan',
+    coursesHint: 'Course codes separated by commas or new lines. For a course outside the program plan, add its credits and, if it is advanced level, <code>:A</code>. For example <code>ABC123:7.5:A</code>.',
+    clear: 'Clear list', loadExample: 'Load example', tapHint: 'Tap a course to add or remove it.',
+    groupProfile: 'Profile', groupSpec: 'Specialization', groupBiz: 'Business course',
+    vof: { o: 'mandatory', 'o/v': 'pick one', v: '', f: 'voluntary' },
+    allMet: 'Every checked requirement is met', notMet: (n) => `${n} requirement${n === 1 ? '' : 's'} not met`,
+    hpCounted: (hp) => `${hp} hp counted in semesters 7–9.`, notMetList: (x) => `Not met: ${x}.`,
+    clashLine: (n) => `${n} timetable collision${n === 1 ? '' : 's'}. See Timetable below.`,
+    groups: ['Master profile', 'Technical specialization', 'Degree requirements'],
+    met: 'Met', notMetPill: 'Not met',
+    yourCourses: 'Your courses', thCode: 'Code', thCourse: 'Course', thLevel: 'Level', thSemester: 'Semester', thCounts: 'Counts toward',
+    roles: { profile: 'Profile', spec: 'Specialization', elective: 'Program elective', outside: 'Outside plan', excluded: 'Not counted' },
+    noCourses: 'No courses yet. Type course codes or tap them in the list on the left.',
+    period: 'P', block: 'block', or: 'or', noBlock: 'no block',
+    semTotals: 'Credits per semester', unscheduled: 'no semester',
+    ttTitle: 'Timetable',
+    noClash: 'No timetable collisions between your courses in the semesters you picked.',
+    ttHint: 'Collisions are checked per semester, so change a course\'s semester in the table above to move it. Autumn courses can usually be taken in semester 7 or 9.',
+    clashHead: (a, b) => `${a} and ${b} collide`,
+    clashWhere: (sem, p, blk) => `Semester ${sem}, period ${p}, block ${blk}.`,
+    caveatTitle: 'These alternatives are not guaranteed to work.',
+    caveat: 'Taking a course with another program needs a free seat and usually approval from the course or your program. A course with a different code is a different course: it may not count toward your profile or specialization, and it may overlap in content with courses you already have. Timetables come from studieinfo and can change. Check with study counselling before you change your plan.',
+    move: 'Other semester', moveText: (c, s) => `Take ${c} in semester ${s} instead.`, moveBtn: (s) => `Move to semester ${s}`,
+    program: 'Same course, other program',
+    programText: (c, progs) => `${c} is also given for ${progs}.`,
+    similar: 'Similar course, different code',
+    similarCounts: (inPlan) => inPlan ? 'In the 6CTMA plan: counts as a program elective, not toward your profile or specialization unless listed there.' : 'Not in the 6CTMA plan: counts as a course outside the program plan (max 18 hp).',
+    fits: (sem) => `Fits in semester ${sem}`,
+    noAlts: 'No collision-free alternative found in the downloaded timetables.',
+    search: 'Search studieinfo:',
+    assumed: [
+      'Years 1–3 are complete (180 hp, all mandatory courses).',
+      'The thesis (30 hp, advanced level in Tillämpad matematik) is done.',
+      'The language requirement is met (thesis in English, a 6 hp language course, or a semester abroad).',
+      'No two courses overlap in content. Overlapping courses cannot both count toward the degree.',
+      'Courses outside the program plan have no timetable here and are not checked for collisions.',
+    ],
+    assumedTitle: 'Assumed and not checked',
+    unofficial: 'Unofficial tool. Check your final plan with study counselling (studievägledningen) before relying on it.',
+    source: (url, date) => `Course data, rules and timetables from <a href="${url}" target="_blank" rel="noopener">studieinfo.liu.se</a>, read on ${date}.`,
+  },
+  sv: {
+    eyebrow: '6CTMA · Civilingenjör i teknisk matematik · Linköping',
+    intro: 'Välj antagningsår, masterprofil och teknisk inriktning och lista sedan kurserna du har läst eller planerar att läsa termin 7–9. Kontrollen uppdateras medan du skriver.',
+    cohort: 'Antagningsår', profile: 'Masterprofil', spec: 'Teknisk inriktning',
+    courses: 'Dina kurser, termin 7–9', exampleTag: 'Exempelplan',
+    coursesHint: 'Kurskoder separerade med komma eller ny rad. För en kurs utanför programplanen, lägg till hp och, om den är på avancerad nivå, <code>:A</code>. Till exempel <code>ABC123:7.5:A</code>.',
+    clear: 'Rensa listan', loadExample: 'Ladda exempel', tapHint: 'Tryck på en kurs för att lägga till eller ta bort den.',
+    groupProfile: 'Profil', groupSpec: 'Inriktning', groupBiz: 'Företags- och affärsmässiga villkor',
+    vof: { o: 'obligatorisk', 'o/v': 'välj en', v: '', f: 'frivillig' },
+    allMet: 'Alla kontrollerade krav är uppfyllda', notMet: (n) => `${n} krav är inte uppfyllt${n === 1 ? '' : 'a'}`,
+    hpCounted: (hp) => `${hp} hp räknas under termin 7–9.`, notMetList: (x) => `Ej uppfyllt: ${x}.`,
+    clashLine: (n) => `${n} schemakrock${n === 1 ? '' : 'ar'}. Se Schema nedan.`,
+    groups: ['Masterprofil', 'Teknisk inriktning', 'Examenskrav'],
+    met: 'Uppfyllt', notMetPill: 'Ej uppfyllt',
+    yourCourses: 'Dina kurser', thCode: 'Kod', thCourse: 'Kurs', thLevel: 'Nivå', thSemester: 'Termin', thCounts: 'Räknas till',
+    roles: { profile: 'Profil', spec: 'Inriktning', elective: 'Valbar i programmet', outside: 'Utanför programplanen', excluded: 'Räknas inte' },
+    noCourses: 'Inga kurser än. Skriv kurskoder eller tryck på dem i listan till vänster.',
+    period: 'P', block: 'block', or: 'eller', noBlock: 'inget block',
+    semTotals: 'Poäng per termin', unscheduled: 'ingen termin',
+    ttTitle: 'Schema',
+    noClash: 'Inga schemakrockar mellan dina kurser under de terminer du valt.',
+    ttHint: 'Krockar kontrolleras per termin, så ändra en kurs termin i tabellen ovan för att flytta den. Höstkurser kan oftast läsas termin 7 eller 9.',
+    clashHead: (a, b) => `${a} och ${b} krockar`,
+    clashWhere: (sem, p, blk) => `Termin ${sem}, period ${p}, block ${blk}.`,
+    caveatTitle: 'De här alternativen fungerar inte nödvändigtvis.',
+    caveat: 'Att läsa en kurs med ett annat program kräver en ledig plats och oftast ett godkännande från kursen eller ditt program. En kurs med en annan kod är en annan kurs: den räknas kanske inte till din profil eller inriktning och kan överlappa innehållsmässigt med kurser du redan har. Schemat kommer från studieinfo och kan ändras. Stäm av med studievägledningen innan du ändrar din plan.',
+    move: 'Annan termin', moveText: (c, s) => `Läs ${c} termin ${s} i stället.`, moveBtn: (s) => `Flytta till termin ${s}`,
+    program: 'Samma kurs, annat program',
+    programText: (c, progs) => `${c} ges även för ${progs}.`,
+    similar: 'Liknande kurs, annan kod',
+    similarCounts: (inPlan) => inPlan ? 'Finns i 6CTMA:s programplan: räknas som valbar kurs, inte till profil eller inriktning om den inte står där.' : 'Finns inte i 6CTMA:s programplan: räknas som kurs utanför programplanen (högst 18 hp).',
+    fits: (sem) => `Passar termin ${sem}`,
+    noAlts: 'Hittade inget krockfritt alternativ i de nedladdade schemana.',
+    search: 'Sök på studieinfo:',
+    assumed: [
+      'Åk 1–3 är klara (180 hp, alla obligatoriska kurser).',
+      'Examensarbetet (30 hp, avancerad nivå i Tillämpad matematik) är klart.',
+      'Språkkravet är uppfyllt (examensarbete på engelska, en språkkurs på 6 hp eller en termin utomlands).',
+      'Inga kurser överlappar innehållsmässigt. Överlappande kurser kan inte båda räknas i examen.',
+      'Kurser utanför programplanen saknar schema här och kontrolleras inte för krockar.',
+    ],
+    assumedTitle: 'Antaget och inte kontrollerat',
+    unofficial: 'Inofficiellt verktyg. Stäm av din slutliga plan med studievägledningen innan du förlitar dig på den.',
+    source: (url, date) => `Kursdata, regler och scheman från <a href="${url}" target="_blank" rel="noopener">studieinfo.liu.se</a>, hämtade ${date}.`,
+  },
+};
+const FETCHED = '__FETCHED__';
+
 const EXAMPLE = { cohort: '5270', profile: 'TMSO', spec: 'TIMI',
-  text: 'TAMS48, TAMS46, TAMS32, TAOP34, TAMS41, TAMS39,\nTSKS15, TSKS38, TDDE07, TDDE70, TATA85, TDDE09, TDDE15,\nTEAE01' };
+  text: 'TAMS48, TAMS46, TAMS32, TAOP34, TAMS41, TAMS39,\nTSKS15, TSKS38, TDDE07, TDDE70, TATA85, TDDE09, TDDE15,\nTEAE01',
+  semesters: /*__EXAMPLE_SEMESTERS__*/ {} };
 const STORE_KEY = 'tma-degree-check';
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
 const hp = (n) => (Math.round(n * 10) / 10).toString().replace('.', ',');
 const cohortOf = () => DATA.find((c) => c.id === $('cohort').value);
-let isExample = false;
+const state = { lang: 'en', semesters: {}, isExample: false };
+const t = () => UI[state.lang];
+const courseName = (info) => (state.lang === 'en' ? info.ne || info.n : info.n);
+const groupName = (g) => (state.lang === 'en' ? g.name_en : g.name);
 
 function fillSelect(sel, items, keep) {
-  sel.innerHTML = items.map(([v, t]) => `<option value="${esc(v)}">${esc(t)}</option>`).join('');
+  sel.innerHTML = items.map(([v, label]) => `<option value="${esc(v)}">${esc(label)}</option>`).join('');
   if (items.some(([v]) => v === keep)) sel.value = keep;
 }
 
 function fillGroups() {
   const c = cohortOf();
-  const groups = Object.entries(c.groups);
-  fillSelect($('profile'), groups.filter(([, g]) => g.kind === 'profile').map(([k, g]) => [k, g.name]), $('profile').value);
-  fillSelect($('spec'), groups.filter(([, g]) => g.kind === 'spec').map(([k, g]) => [k, g.name]), $('spec').value);
-  $('source').href = `https://studieinfo.liu.se/program/6CTMA/${c.id}#curriculum`;
+  const groups = Object.entries(c.groups).sort((a, b) => groupName(a[1]).localeCompare(groupName(b[1]), state.lang));
+  fillSelect($('profile'), groups.filter(([, g]) => g.kind === 'profile').map(([k, g]) => [k, groupName(g)]), $('profile').value);
+  fillSelect($('spec'), groups.filter(([, g]) => g.kind === 'spec').map(([k, g]) => [k, groupName(g)]), $('spec').value);
 }
 
 const codesInText = () => new Set(parseInput($('courses').value).entries.map((e) => e.code));
@@ -248,105 +379,202 @@ function toggleCourse(code) {
   const next = codes.includes(code) ? codes.filter((c) => c !== code) : [...codes, code];
   // Keep any credit/level annotations the user typed for other courses.
   const kept = $('courses').value.toUpperCase().split(/[\s,;]+/).filter(Boolean)
-    .filter((t) => next.includes(t.split(':')[0]));
+    .filter((tok) => next.includes(tok.split(':')[0]));
   if (!codes.includes(code)) kept.push(code);
   $('courses').value = kept.join(', ');
-  markEdited();
+  state.isExample = false;
   update();
+}
+
+function renderStatic() {
+  document.documentElement.lang = state.lang;
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t()[el.dataset.i18n]; });
+  document.querySelectorAll('[data-i18n-html]').forEach((el) => { el.innerHTML = t()[el.dataset.i18nHtml]; });
+  $('lang-sv').setAttribute('aria-pressed', state.lang === 'sv');
+  $('lang-en').setAttribute('aria-pressed', state.lang === 'en');
+  $('assumed').innerHTML = t().assumed.map((a) => `<li>${esc(a)}</li>`).join('');
+  const url = `https://studieinfo.liu.se/${state.lang === 'en' ? 'en/' : ''}program/6CTMA/${$('cohort').value}#curriculum`;
+  $('source-line').innerHTML = t().source(url, FETCHED);
+  fillGroups();
 }
 
 function renderPicker() {
   const c = cohortOf();
   const taken = codesInText();
-  const VOF = { o: 'mandatory', 'o/v': 'pick one', v: '', f: 'voluntary' };
   const group = (title, entries) => `
     <div class="picker-group">
       <h3>${esc(title)}</h3>
       <div class="chips">${entries.map(([code, vof]) => {
         const info = c.courses[code];
-        const tag = VOF[vof];
-        return `<button type="button" class="chip" data-code="${esc(code)}" aria-pressed="${taken.has(code)}" title="${esc(info.n)} · ${esc(info.l)}">${esc(code)}<span class="hp">${hp(info.hp)}</span>${tag ? `<span class="tag">${tag}</span>` : ''}</button>`;
+        const tag = t().vof[vof];
+        return `<button type="button" class="chip" data-code="${esc(code)}" aria-pressed="${taken.has(code)}" title="${esc(courseName(info))} · ${esc(info.l)}">${esc(code)}<span class="hp">${hp(info.hp)}</span>${tag ? `<span class="tag">${esc(tag)}</span>` : ''}</button>`;
       }).join('')}</div>
     </div>`;
   const order = { o: 0, 'o/v': 1, v: 2, f: 3 };
   const sorted = (obj) => Object.entries(obj).sort((a, b) => order[a[1]] - order[b[1]] || a[0].localeCompare(b[0]));
   const p = c.groups[$('profile').value], s = c.groups[$('spec').value];
   const biz = c.business.map((code) => [code, s.c[code] === 'o' ? 'o' : 'o/v']);
-  $('picker').innerHTML = `<p class="hint">Tap a course to add or remove it.</p>`
-    + group(`Profile · ${p.name}`, sorted(p.c))
-    + group(`Specialization · ${s.name}`, sorted(s.c))
-    + group('Business course', biz);
+  $('picker').innerHTML = `<p class="hint">${esc(t().tapHint)}</p>`
+    + group(`${t().groupProfile} · ${groupName(p)}`, sorted(p.c))
+    + group(`${t().groupSpec} · ${groupName(s)}`, sorted(s.c))
+    + group(t().groupBiz, biz);
 }
+
+const slotText = (inst) => inst.map(([p, b]) => b === '-' ? `${t().period}${p} · ${t().noBlock}` : `${t().period}${p} · ${t().block} ${b}`).join(' + ');
+const instText = (insts) => insts.map(slotText).join(` ${t().or} `);
 
 function renderResults(r) {
   const met = r.reqs.filter((q) => q.ok).length, total = r.reqs.length;
+  const clashes = r.schedule.collisions.length;
   const v = $('verdict');
-  v.className = 'verdict ' + (met === total ? 'all-ok' : 'some-bad');
+  v.className = 'verdict ' + (met === total ? 'reqs-ok' : 'reqs-bad') + (clashes ? ' has-clash' : met === total ? ' all-ok' : '');
   const missing = r.reqs.filter((q) => !q.ok).map((q) => q.title.toLowerCase());
   v.innerHTML = `<div class="score">${met}<small>/${total}</small></div><div>
-    <strong>${met === total ? 'Every checked requirement is met' : `${total - met} requirement${total - met === 1 ? '' : 's'} not met`}</strong>
-    <span>${met === total ? `${hp(r.totals.totalHp)} hp counted in semesters 7–9.` : 'Not met: ' + esc(missing.join('; ')) + '.'}</span></div>`;
+    <strong>${met === total ? esc(t().allMet) : esc(t().notMet(total - met))}</strong>
+    <span>${met === total ? esc(t().hpCounted(hp(r.totals.totalHp))) : esc(t().notMetList(missing.join('; ')))}</span>
+    ${clashes ? `<span class="clash-line">${esc(t().clashLine(clashes))}</span>` : ''}</div>`;
 
   $('warnings').innerHTML = r.warnings.map((w) => `<li>${esc(w)}</li>`).join('');
 
   const groups = [
-    ['Master profile', ['profile-mandatory', 'profile-hp', 'profile-adv']],
-    ['Technical specialization', ['spec-mandatory', 'spec-hp']],
-    ['Degree requirements', ['business', 'outside', 'total', 'advanced', 'main-field']],
+    ['profile-mandatory', 'profile-hp', 'profile-adv'],
+    ['spec-mandatory', 'spec-hp'],
+    ['business', 'outside', 'total', 'advanced', 'main-field'],
   ];
-  $('reqs').innerHTML = groups.map(([title, ids]) => `<div class="req-group"><h3>${title}</h3>${ids.map((id) => {
+  $('reqs').innerHTML = groups.map((ids, gi) => `<div class="req-group"><h3>${esc(t().groups[gi])}</h3>${ids.map((id) => {
     const q = r.reqs.find((x) => x.id === id);
     let meter = '';
     if (q.progress && q.progress.target) {
       const frac = Math.min(1, q.progress.value / q.progress.target);
-      meter = `<div class="meter ${q.ok ? '' : 'bad'}" role="img" aria-label="${hp(q.progress.value)} of ${q.progress.target}"><i style="width:${(frac * 100).toFixed(1)}%"></i></div>`;
+      meter = `<div class="meter ${q.ok ? '' : 'bad'}" role="img" aria-label="${hp(q.progress.value)} / ${q.progress.target}"><i style="width:${(frac * 100).toFixed(1)}%"></i></div>`;
     }
-    return `<div class="req"><span class="pill ${q.ok ? 'ok' : 'bad'}">${q.ok ? 'Met' : 'Not met'}</span>
+    return `<div class="req"><span class="pill ${q.ok ? 'ok' : 'bad'}">${esc(q.ok ? t().met : t().notMetPill)}</span>
       <div class="req-title">${esc(q.title)}</div><div class="req-detail">${esc(q.detail)}</div>${meter}</div>`;
   }).join('')}</div>`).join('');
 
-  const ROLE = { profile: 'Profile', spec: 'Specialization', elective: 'Program elective', outside: 'Outside plan', excluded: 'Not counted' };
-  $('course-rows').innerHTML = r.courses.length ? r.courses.map((c) => `<tr>
-      <td class="code">${esc(c.code)}</td>
-      <td>${esc(c.name || '—')}${c.note ? `<span class="course-note">${esc(c.note)}</span>` : ''}</td>
-      <td class="num">${hp(c.hp)}</td>
-      <td class="mono">${esc(c.level || '—')}</td>
-      <td><span class="role ${c.role}">${ROLE[c.role]}</span></td></tr>`).join('')
-    : `<tr><td colspan="5" class="empty">No courses yet. Type course codes or tap them in the list on the left.</td></tr>`;
+  const clashing = new Set(r.schedule.collisions.flatMap((x) => [x.a, x.b]));
+  const c = cohortOf();
+  $('course-rows').innerHTML = r.courses.length ? r.courses.map((course) => {
+    let semCell = '—';
+    if (course.semOptions) {
+      const insts = c.courses[course.code].s[course.sem === 8 ? 'VT' : 'HT'];
+      semCell = (course.semOptions.length > 1
+        ? `<select data-sem="${esc(course.code)}" aria-label="${esc(t().thSemester)} ${esc(course.code)}">${course.semOptions.map((s) => `<option value="${s}"${s === course.sem ? ' selected' : ''}>${s}</option>`).join('')}</select>`
+        : `<span class="mono">${course.sem}</span>`) + `<span class="slots">${esc(instText(insts))}</span>`;
+    }
+    return `<tr class="${clashing.has(course.code) ? 'clashing' : ''}">
+      <td class="code">${esc(course.code)}</td>
+      <td>${esc(course.name || '—')}${course.note ? `<span class="course-note">${esc(course.note)}</span>` : ''}</td>
+      <td class="num">${hp(course.hp)}</td>
+      <td class="mono">${esc(course.level || '—')}</td>
+      <td>${semCell}</td>
+      <td><span class="role ${course.role}">${esc(t().roles[course.role])}</span></td></tr>`;
+  }).join('')
+    : `<tr><td colspan="6" class="empty">${esc(t().noCourses)}</td></tr>`;
+
+  renderTimetable(r);
+}
+
+function renderTimetable(r) {
+  const s = r.schedule;
+  const c = cohortOf();
+  const nameOf = (code) => {
+    const info = c.courses[code] || ALT.c[code];
+    return info ? `${code} ${courseName(info)}` : code;
+  };
+  const tiles = [7, 8, 9].map((sem) => `<div class="sem-tile"><span>${esc(t().thSemester)} ${sem}</span><b>${hp(s.perSemester[sem])} hp</b></div>`).join('')
+    + (s.unplacedHp ? `<div class="sem-tile"><span>${esc(t().unscheduled)}</span><b>${hp(s.unplacedHp)} hp</b></div>` : '');
+  let body = '';
+  if (!s.collisions.length) {
+    body = `<p class="ok-note">${esc(t().noClash)}</p>`;
+  } else {
+    // Moving a course to another TMA semester needs no exception; the caveat is for other programs and other courses.
+    const risky = s.collisions.some((x) => x.options.slice(0, 10).some((o) => o.type !== 'move'));
+    body = (risky ? `<p class="caveat"><strong>${esc(t().caveatTitle)}</strong>${esc(t().caveat)}</p>` : '') + s.collisions.map((x) => {
+      const alts = x.options.slice(0, 10).map((o) => {
+        if (o.type === 'move') {
+          return `<li><div><span class="alt-kind">${esc(t().move)}</span>${esc(t().moveText(o.code, o.sem))}<span class="alt-meta">${esc(instText(o.slots))}</span></div>
+            <button type="button" data-move="${esc(o.code)}" data-to="${o.sem}">${esc(t().moveBtn(o.sem))}</button></li>`;
+        }
+        const g = o.group;
+        const progs = g.p.map((p) => `${p} ${ALT.progs[p] || ''}`.trim()).join(', ');
+        const where = `${g.t} · ${slotText(g.s)} · ${g.campus} · ${g.lang}`;
+        if (o.type === 'program') {
+          return `<li><div><span class="alt-kind">${esc(t().program)}</span>${esc(t().programText(o.code, progs))}<span class="alt-meta">${esc(where)}. ${esc(t().fits(o.sem))}.</span></div></li>`;
+        }
+        const info = o.info;
+        return `<li><div><span class="alt-kind">${esc(t().similar)}</span><a href="https://studieinfo.liu.se/${state.lang === 'en' ? 'en/' : ''}kurs/${esc(o.code)}" target="_blank" rel="noopener">${esc(o.code)} ${esc(courseName(info))}</a>, ${hp(info.hp || 0)} hp${info.l ? ', ' + esc(info.l) : ''}
+          <span class="alt-meta">${esc(where)}. ${esc(t().fits(o.sem))}. ${esc(t().similarCounts(o.inPlan))}</span>
+          <span class="alt-meta">${esc(t().programText(o.code, progs))}</span></div></li>`;
+      }).join('');
+      const searches = [x.a, x.b].map((code) => {
+        const info = c.courses[code];
+        const q = encodeURIComponent(info.n);
+        return `<a href="https://studieinfo.liu.se/${state.lang === 'en' ? 'en/' : ''}?Term=${q}&Type=course&MainFieldOfStudy=" target="_blank" rel="noopener">${esc(courseName(info))}</a>`;
+      }).join(' · ');
+      return `<div class="clash">
+        <div class="clash-head"><strong>${esc(t().clashHead(nameOf(x.a), nameOf(x.b)))}</strong><span>${esc(t().clashWhere(x.sem, x.period, x.block))}</span></div>
+        ${alts ? `<ul class="alts">${alts}</ul>` : `<p class="hint">${esc(t().noAlts)}</p>`}
+        <div class="search-links">${esc(t().search)} ${searches}</div>
+      </div>`;
+    }).join('');
+  }
+  $('timetable').innerHTML = `<h2>${esc(t().ttTitle)}</h2><div class="tt-summary">${tiles}</div>${body}<p class="hint">${esc(t().ttHint)}</p>`;
+}
+
+function save() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify({ cohort: $('cohort').value, profile: $('profile').value, spec: $('spec').value,
+      text: $('courses').value, semesters: state.semesters, lang: state.lang, isExample: state.isExample }));
+  } catch (e) {}
 }
 
 function update() {
-  const state = { cohort: $('cohort').value, profile: $('profile').value, spec: $('spec').value, text: $('courses').value };
-  $('example-tag').hidden = !isExample;
-  try { localStorage.setItem(STORE_KEY, JSON.stringify({ ...state, isExample })); } catch (e) {}
-  renderResults(validate(cohortOf(), state.profile, state.spec, state.text));
+  $('example-tag').hidden = !state.isExample;
+  const r = validate(cohortOf(), $('profile').value, $('spec').value, $('courses').value,
+    { lang: state.lang, semesters: state.semesters, alt: ALT });
+  renderResults(r);
   renderPicker();
+  save();
 }
 
-function markEdited() { isExample = false; }
-
-function load(state) {
-  $('cohort').value = state.cohort;
+function load(saved) {
+  $('cohort').value = saved.cohort;
   fillGroups();
-  $('profile').value = state.profile;
-  $('spec').value = state.spec;
-  $('courses').value = state.text;
+  $('profile').value = saved.profile;
+  $('spec').value = saved.spec;
+  $('courses').value = saved.text;
+  state.semesters = { ...(saved.semesters || {}) };
 }
+
+function setLang(lang) { state.lang = lang; renderStatic(); update(); }
 
 fillSelect($('cohort'), DATA.map((c) => [c.id, c.label]), '5270');
 let saved = null;
 try { saved = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) {}
-if (saved && DATA.some((c) => c.id === saved.cohort)) { load(saved); isExample = !!saved.isExample; }
-else { load(EXAMPLE); isExample = true; }
+state.lang = saved && saved.lang ? saved.lang : (/^sv\b/i.test(navigator.language || '') ? 'sv' : 'en');
+if (saved && DATA.some((c) => c.id === saved.cohort)) { load(saved); state.isExample = !!saved.isExample; }
+else { load(EXAMPLE); state.isExample = true; }
+renderStatic();
 update();
 
-$('cohort').addEventListener('change', () => { fillGroups(); update(); });
+$('lang-sv').addEventListener('click', () => setLang('sv'));
+$('lang-en').addEventListener('click', () => setLang('en'));
+$('cohort').addEventListener('change', () => { renderStatic(); update(); });
 $('profile').addEventListener('change', update);
 $('spec').addEventListener('change', update);
-$('courses').addEventListener('input', () => { markEdited(); update(); });
-$('clear').addEventListener('click', () => { $('courses').value = ''; markEdited(); update(); $('courses').focus(); });
-$('example').addEventListener('click', () => { load(EXAMPLE); isExample = true; update(); });
+$('courses').addEventListener('input', () => { state.isExample = false; update(); });
+$('clear').addEventListener('click', () => { $('courses').value = ''; state.semesters = {}; state.isExample = false; update(); $('courses').focus(); });
+$('example').addEventListener('click', () => { load(EXAMPLE); state.isExample = true; update(); });
 $('picker').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) toggleCourse(b.dataset.code); });
+$('course-rows').addEventListener('change', (e) => {
+  const sel = e.target.closest('select[data-sem]');
+  if (sel) { state.semesters[sel.dataset.sem] = Number(sel.value); state.isExample = false; update(); }
+});
+$('timetable').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-move]');
+  if (b) { state.semesters[b.dataset.move] = Number(b.dataset.to); state.isExample = false; update(); }
+});
 $('plan').addEventListener('submit', (e) => e.preventDefault());
 </script>
 </body>
