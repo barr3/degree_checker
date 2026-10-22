@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Check a Teknisk matematik (6CTMA, Linköping University) course plan for semesters 7–9 against the master profile, technical specialization and degree requirements.">
+<title>TMA Degree Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a two-column audit sheet. Plan inputs on the left, the requirement checklist on the right, course breakdown below. */
+:root {
+  --paper: #f2f4f3;
+  --surface: #ffffff;
+  --ink: #17201e;
+  --muted: #5a6662;
+  --line: #d6dddA;
+  --accent: #1d5d73;
+  --accent-soft: #e2edf1;
+  --ok: #2b7547;
+  --ok-soft: #e3f1e8;
+  --bad: #b23f2c;
+  --bad-soft: #f8e5e1;
+  --warn: #8a5f0e;
+  --warn-soft: #f6edd9;
+  --font-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111715; --surface: #18201e; --ink: #e2e9e6; --muted: #98a6a1; --line: #2a3532;
+    --accent: #7fbdd2; --accent-soft: #1b3038; --ok: #6cc48e; --ok-soft: #173023; --bad: #f08c77;
+    --bad-soft: #3a1f1a; --warn: #e0b45c; --warn-soft: #362a12; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111715; --surface: #18201e; --ink: #e2e9e6; --muted: #98a6a1; --line: #2a3532;
+  --accent: #7fbdd2; --accent-soft: #1b3038; --ok: #6cc48e; --ok-soft: #173023; --bad: #f08c77;
+  --bad-soft: #3a1f1a; --warn: #e0b45c; --warn-soft: #362a12; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--paper); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+}
+.wrap {
+  max-width: 1180px; margin: 0 auto;
+  padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 28px;
+}
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(30px, 5vw, 42px); line-height: 1.05; margin: 0; text-wrap: balance; }
+header p { margin: 0; color: var(--muted); max-width: 68ch; }
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 20px; margin: 0; }
+h3 { font-size: 12px; font-family: var(--font-mono); font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0; }
+code, .mono { font-family: var(--font-mono); font-size: .92em; }
+
+.layout { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 18px; min-width: 0; }
+.field { display: grid; gap: 6px; }
+label { font-weight: 600; font-size: 14px; }
+select, textarea {
+  font: inherit; color: var(--ink); background: var(--paper); border: 1px solid var(--line); border-radius: 6px;
+  padding: 9px 10px; width: 100%;
+}
+textarea { font-family: var(--font-mono); font-size: 14px; min-height: 150px; resize: vertical; line-height: 1.6; }
+select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button {
+  font: inherit; font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 6px; padding: 6px 12px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+}
+button:hover { border-color: var(--accent); color: var(--accent); }
+.example-tag { font-size: 12px; font-family: var(--font-mono); background: var(--warn-soft); color: var(--warn); padding: 2px 8px; border-radius: 4px; }
+
+/* Course picker */
+.picker { display: grid; gap: 14px; border-top: 1px solid var(--line); padding-top: 18px; }
+.picker-group { display: grid; gap: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font-family: var(--font-mono); font-size: 12.5px; padding: 4px 8px; border-radius: 5px;
+  border: 1px solid var(--line); background: var(--paper); color: var(--ink); display: inline-flex; gap: 6px; align-items: baseline;
+}
+.chip .hp { color: var(--muted); font-size: 11.5px; }
+.chip .tag { font-size: 10.5px; color: var(--accent); font-weight: 500; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.chip[aria-pressed="true"] .hp, .chip[aria-pressed="true"] .tag { color: var(--surface); opacity: .85; }
+
+/* Results */
+.results { display: grid; gap: 22px; min-width: 0; }
+.verdict { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; padding: 18px 20px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); }
+.verdict .score { font-family: var(--font-display); font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
+.verdict .score small { font-size: 20px; color: var(--muted); }
+.verdict strong { display: block; font-size: 17px; }
+.verdict span { color: var(--muted); font-size: 14px; }
+.verdict.all-ok { border-color: var(--ok); background: var(--ok-soft); }
+.verdict.all-ok .score { color: var(--ok); }
+.verdict.some-bad .score { color: var(--bad); }
+
+.warnings { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.warnings li { background: var(--warn-soft); color: var(--warn); border-radius: 6px; padding: 8px 12px; font-size: 14px; }
+
+.req-group { display: grid; gap: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.req-group > h3 { padding: 12px 18px 10px; border-bottom: 1px solid var(--line); }
+.req { display: grid; grid-template-columns: 86px minmax(0, 1fr); gap: 4px 14px; padding: 12px 18px; border-bottom: 1px solid var(--line); }
+.req:last-child { border-bottom: 0; }
+@media (max-width: 520px) { .req { grid-template-columns: minmax(0, 1fr); padding: 12px 14px; } .pill { grid-row: auto; } .meter { grid-column: 1; } }
+.pill { grid-row: span 2; align-self: start; justify-self: start; font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.req-title { font-weight: 600; }
+.req-detail { color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.meter { grid-column: 2; height: 6px; background: var(--paper); border-radius: 3px; position: relative; overflow: hidden; margin-top: 4px; max-width: 420px; }
+.meter i { position: absolute; inset: 0 auto 0 0; background: var(--ok); border-radius: 3px; }
+.meter.bad i { background: var(--bad); }
+
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--font-mono); font-weight: 500; font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+td.num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+td.code { font-family: var(--font-mono); white-space: nowrap; }
+.role { font-size: 12px; font-weight: 500; padding: 2px 7px; border-radius: 4px; white-space: nowrap; background: var(--paper); color: var(--muted); }
+.role.profile, .role.spec { background: var(--accent-soft); color: var(--accent); }
+.role.outside { background: var(--warn-soft); color: var(--warn); }
+.role.excluded { text-decoration: line-through; }
+.course-note { display: block; font-size: 12.5px; color: var(--muted); }
+.empty { padding: 18px; color: var(--muted); }
+
+.assumed { display: grid; gap: 8px; }
+.assumed ul { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14px; display: grid; gap: 4px; max-width: 75ch; }
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; display: grid; gap: 4px; }
+footer a, .assumed a { color: var(--accent); }
+@media (prefers-reduced-motion: no-preference) { .meter i { transition: width .25s ease; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">6CTMA · Civilingenjör i teknisk matematik · Linköping</div>
+    <h1>TMA Degree Check</h1>
+    <p>Choose your admission year, master profile and technical specialization, then list the courses you have taken or plan to take in semesters 7–9. The checklist updates as you type.</p>
+  </header>
+
+  <div class="layout">
+    <form class="panel" id="plan" autocomplete="off">
+      <div class="field">
+        <label for="cohort">Admission year</label>
+        <select id="cohort"></select>
+      </div>
+      <div class="field">
+        <label for="profile">Master profile</label>
+        <select id="profile"></select>
+      </div>
+      <div class="field">
+        <label for="spec">Technical specialization</label>
+        <select id="spec"></select>
+      </div>
+      <div class="field">
+        <div class="row" style="justify-content: space-between;">
+          <label for="courses">Your courses, semesters 7–9</label>
+          <span class="example-tag" id="example-tag" hidden>Example plan</span>
+        </div>
+        <textarea id="courses" spellcheck="false" placeholder="TAMS46, TDDE09, TAMS48, …"></textarea>
+        <p class="hint">Course codes separated by commas or new lines. For a course outside the program plan, add its credits and, if it is advanced level, <code>:A</code>. For example <code>ABC123:7.5:A</code>.</p>
+        <div class="row">
+          <button type="button" id="clear">Clear list</button>
+          <button type="button" id="example">Load example</button>
+        </div>
+      </div>
+      <div class="picker" id="picker"></div>
+    </form>
+
+    <section class="results" aria-live="polite">
+      <div class="verdict" id="verdict"></div>
+      <ul class="warnings" id="warnings"></ul>
+      <div id="reqs" class="results"></div>
+      <div class="results">
+        <h2>Your courses</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Code</th><th>Course</th><th style="text-align:right">hp</th><th>Level</th><th>Counts toward</th></tr></thead>
+            <tbody id="course-rows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="assumed">
+        <h2>Assumed and not checked</h2>
+        <ul>
+          <li>Years 1–3 are complete (180 hp, all mandatory courses).</li>
+          <li>The thesis (30 hp, advanced level in Tillämpad matematik) is done.</li>
+          <li>The language requirement is met (thesis in English, a 6 hp language course, or a semester abroad).</li>
+          <li>No two courses overlap in content. Overlapping courses cannot both count toward the degree.</li>
+          <li>Your courses fit the timetable blocks.</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    <span>Unofficial tool. Check your final plan with study counselling (studievägledningen) before relying on it.</span>
+    <span>Course data and rules from the <a id="source" href="https://studieinfo.liu.se/program/6CTMA" target="_blank" rel="noopener">program plan on studieinfo.liu.se</a>, read on 2026-10-22.</span>
+  </footer>
+</div>
+
+<script>
+const DATA = [{"id":"5270","label":"HT 2022","rules":{"profileHp":30,"profileAdvCourses":4,"specHp":36,"outsideMax":18,"businessText":["TEAE01","TEIO94"]},"business":["TEAE01","TEIO94"],"courses":{"TATB01":{"n":"Matematisk grundkurs","hp":6.0,"l":"G1N","tm":true},"TANA82":{"n":"Ingenjörsprojekt","hp":6.0,"l":"G1N","tm":true},"TATA24":{"n":"Linjär algebra","hp":8.0,"l":"G1N","tm":true},"TATB05":{"n":"Matematisk modellering","hp":4.0,"l":"G1N","tm":true},"TATA41":{"n":"Envariabelanalys 1","hp":6.0,"l":"G1F","tm":true},"TATA42":{"n":"Envariabelanalys 2","hp":6.0,"l":"G1F","tm":true},"TDDE44":{"n":"Programmering, grundkurs","hp":8.0,"l":"G1N","tm":false},"TFYB04":{"n":"Mekanik och grundläggande fysikaliska begrepp","hp":8.0,"l":"G1F","tm":false},"TBMT32":{"n":"Medicintekniska utblickar","hp":2.0,"l":"G1N","tm":false},"TFFM12":{"n":"Fysikaliska utblickar","hp":2.0,"l":"G1X","tm":false},"TATA40":{"n":"Matematiska utblickar","hp":1.0,"l":"G1N","tm":true},"TGTU96":{"n":"Hållbar studiesituation","hp":2.0,"l":"G1N","tm":false},"TATA43":{"n":"Flervariabelanalys","hp":8.0,"l":"G1F","tm":true},"TANA21":{"n":"Beräkningsmatematik","hp":6.0,"l":"G1F","tm":true},"TATA32":{"n":"Diskret matematik","hp":8.0,"l":"G1N","tm":true},"TATA44":{"n":"Vektoranalys","hp":4.0,"l":"G1F","tm":true},"TATA45":{"n":"Komplex analys","hp":6.0,"l":"G2F","tm":true},"TFYB06":{"n":"Elektromagnetism","hp":6.0,"l":"G2X","tm":false},"TAMS14":{"n":"Sannolikhetslära","hp":4.0,"l":"G1F","tm":true},"TAOP07":{"n":"Optimeringslära grundkurs","hp":6.0,"l":"G1F","tm":true},"TATA53":{"n":"Linjär algebra, överkurs","hp":6.0,"l":"G2F","tm":true},"TFYB07":{"n":"Elektromagnetiska vågor","hp":2.0,"l":"G2F","tm":false},"TAOP24":{"n":"Optimeringslära fortsättningskurs","hp":6.0,"l":"G2F","tm":true},"TSKS34":{"n":"Komplexa nätverk","hp":6.0,"l":"G2F","tm":false},"TPTE06":{"n":"Praktik","hp":6.0,"l":"G2F","tm":false},"TAMS24":{"n":"Statistisk teori, grk","hp":4.0,"l":"G2F","tm":true},"TATA77":{"n":"Fourieranalys","hp":6.0,"l":"G2F","tm":true},"TDDE71":{"n":"Programmering och datastrukturer","hp":8.0,"l":"G2F","tm":false},"TDDE69":{"n":"Maskininlärning, grundkurs","hp":6.0,"l":"G2F","tm":false},"TSBB36":{"n":"Multidimensionell signal- och bildanalys","hp":6.0,"l":"G2X","tm":false},"TATB06":{"n":"Teknisk matematik kandidatprojekt","hp":16.0,"l":"G2X","tm":true},"TSKS37":{"n":"Tekniska beräkningar i Python","hp":2.0,"l":"G1F","tm":false},"TSRT12":{"n":"Reglerteknik","hp":6.0,"l":"G2F","tm":false},"TINT01":{"n":"Introduktionskurs i interkulturell kompetens","hp":2.0,"l":"G1N","tm":false},"TANA31":{"n":"Beräkningsmetoder för ordinära och partiella differentialekvationer","hp":6.0,"l":"A1N","tm":true},"TEAE01":{"n":"Industriell ekonomi, grundkurs","hp":6.0,"l":"G1F","tm":false},"TGTU49":{"n":"Teknikhistoria","hp":6.0,"l":"G1F","tm":false},"TAMS32":{"n":"Stokastiska processer","hp":6.0,"l":"A1N","tm":true},"TAMS46":{"n":"Sannolikhetslära, fortsättningskurs","hp":6.0,"l":"A1N","tm":true},"TATA34":{"n":"Analys, överkurs","hp":6.0,"l":"G2F","tm":true},"TATA55":{"n":"Abstrakt algebra","hp":6.0,"l":"G2F","tm":true},"TATA74":{"n":"Differentialgeometri","hp":6.0,"l":"G2F","tm":true},"TATM85":{"n":"Funktionalanalys","hp":6.0,"l":"A1N","tm":true},"TATA71":{"n":"Ordinära differentialekvationer och dynamiska system","hp":6.0,"l":"G2F","tm":true},"TAOP34":{"n":"Optimering av stora system","hp":6.0,"l":"A1N","tm":true},"TAMS41":{"n":"Statistisk modellering med regressionsmetoder","hp":6.0,"l":"A1N","tm":true},"TAOP04":{"n":"Matematisk optimering","hp":6.0,"l":"A1N","tm":true},"TSRT92":{"n":"Modellering och inlärning för dynamiska system","hp":6.0,"l":"A1N","tm":false},"TSFS22":{"n":"Feldetektion och diagnos av tekniska system","hp":6.0,"l":"A1N","tm":false},"TSRT08":{"n":"Optimal styrning","hp":6.0,"l":"A1N","tm":false},"TSRT78":{"n":"Digital signalbehandling","hp":6.0,"l":"A1F","tm":false},"TBME04":{"n":"Anatomi och fysiologi","hp":6.0,"l":"G2F","tm":false},"TBMT42":{"n":"Systembiologi, digitala tvillingar och AI","hp":6.0,"l":"A1N","tm":false},"TBMT01":{"n":"Analys av bioelektriska signaler","hp":6.0,"l":"A1F","tm":false},"TMQU03":{"n":"Offensiv kvalitetsutveckling, gk","hp":6.0,"l":"G2F","tm":false},"TMQU12":{"n":"Lean Production","hp":6.0,"l":"A1N","tm":false},"TPPE17":{"n":"Corporate Finance","hp":6.0,"l":"G2F","tm":false},"TPPE29":{"n":"Finansiella marknader och instrument","hp":6.0,"l":"A1N","tm":false},"TFYA18":{"n":"Fysikens matematiska metoder","hp":6.0,"l":"A1N","tm":true},"TFYA40":{"n":"Analytisk mekanik","hp":6.0,"l":"A1N","tm":true},"TFFY54":{"n":"Kvantmekanik","hp":6.0,"l":"A1N","tm":false},"TFYA12":{"n":"Termodynamik och statistisk mekanik","hp":6.0,"l":"G2F","tm":false},"TSKS15":{"n":"Detektion och estimering av signaler","hp":6.0,"l":"A1N","tm":false},"TSBB19":{"n":"Maskininlärning för datorseende","hp":6.0,"l":"A1N","tm":false},"TSKS38":{"n":"Distribuerad informationsbehandling och maskininlärning","hp":6.0,"l":"A1N","tm":false},"TSBB08":{"n":"Digital bildbehandling grundkurs","hp":6.0,"l":"A1N","tm":false},"TSDT14":{"n":"Signalteori","hp":6.0,"l":"A1N","tm":false},"TSBB21":{"n":"Beräkningsfotografi","hp":6.0,"l":"A1F","tm":false},"TDDD38":{"n":"Avancerad programmering i C++","hp":6.0,"l":"A1N","tm":false},"TDDD72":{"n":"Logik","hp":6.0,"l":"G1F","tm":false},"THEN18":{"n":"Engelska","hp":6.0,"l":"G1N","tm":false},"TINT02":{"n":"Interkulturell kompetens och interkulturell kommunikation, fortsättningskurs","hp":6.0,"l":"G2F","tm":false},"TEIO94":{"n":"Entreprenörskap och idéutveckling","hp":6.0,"l":"G2F","tm":false},"TGTU84":{"n":"Mångfald och genus inom teknikutveckling","hp":6.0,"l":"G1F","tm":false},"TGTU98":{"n":"Matematik, vetenskap och samhälle","hp":6.0,"l":"G1F","tm":false},"TANA15":{"n":"Numerisk linjär algebra","hp":6.0,"l":"A1N","tm":true},"TATA27":{"n":"Partiella differentialekvationer","hp":6.0,"l":"A1N","tm":true},"TATA54":{"n":"Talteori","hp":6.0,"l":"G2F","tm":true},"TATA64":{"n":"Grafteori","hp":6.0,"l":"A1N","tm":true},"TATA66":{"n":"Fourier- och waveletanalys","hp":6.0,"l":"A1N","tm":true},"TAMS39":{"n":"Multivariat statistik","hp":6.0,"l":"A1N","tm":true},"TSRT09":{"n":"Reglerteori","hp":6.0,"l":"A1N","tm":false},"TSRT07":{"n":"Industriell reglerteknik","hp":6.0,"l":"A1N","tm":false},"TSRT14":{"n":"Sensorfusion","hp":6.0,"l":"A1N","tm":false},"TBMT09":{"n":"Fysiologiska tryck och flöden","hp":6.0,"l":"A1N","tm":false},"TBME08":{"n":"Biomedicinsk modellering och simulering","hp":6.0,"l":"A1N","tm":false},"TMQU31":{"n":"Statistisk kvalitetsstyrning","hp":6.0,"l":"A1N","tm":false},"TEIO13":{"n":"Ledarskap och industriellt förändringsarbete","hp":6.0,"l":"A1N","tm":false},"TMQU04":{"n":"Six Sigma Quality","hp":6.0,"l":"A1F","tm":false},"TMQU13":{"n":"Kundfokuserad produkt- och tjänsteutveckling","hp":6.0,"l":"A1N","tm":false},"TAMS29":{"n":"Stokastiska processer för finansmarknadsmodeller","hp":6.0,"l":"A1F","tm":true},"TPPE32":{"n":"Finansiell riskhantering","hp":6.0,"l":"A1F","tm":false},"TPPE33":{"n":"Portföljförvaltning","hp":6.0,"l":"A1N","tm":false},"TATA75":{"n":"Relativitetsteori","hp":6.0,"l":"A1F","tm":true},"TFYA17":{"n":"Projektlaborationer i fysik","hp":6.0,"l":"A1F","tm":false},"TFYA36":{"n":"Kaos och icke-linjära fenomen","hp":6.0,"l":"A1N","tm":true},"TDDE09":{"n":"Språkteknologi","hp":6.0,"l":"A1F","tm":false},"TDDE07":{"n":"Bayesianska metoder","hp":6.0,"l":"A1F","tm":false},"TDDE70":{"n":"Djup maskininlärning","hp":6.0,"l":"A1F","tm":false},"TSBB34":{"n":"Datorseende för videoanalys","hp":6.0,"l":"A1N","tm":false},"TSBB33":{"n":"3D-datorseende","hp":6.0,"l":"A1N","tm":false},"TDDD20":{"n":"Konstruktion och analys av algoritmer","hp":6.0,"l":"A1N","tm":false},"TDDD95":{"n":"Algoritmisk problemlösning","hp":6.0,"l":"A1F","tm":false},"TAMS48":{"n":"Matematisk modellering för hållbar utveckling","hp":6.0,"l":"A1N","tm":true},"TATA78":{"n":"Komplex analys fk","hp":6.0,"l":"A1N","tm":true},"TATB10":{"n":"Matrisanalys","hp":6.0,"l":"A1N","tm":true},"TATM38":{"n":"Matematiska modeller i biologi","hp":6.0,"l":"A1N","tm":true},"TAMS43":{"n":"Sannolikhetsteori och bayesianska nätverk","hp":6.0,"l":"A1N","tm":true},"TAMS17":{"n":"Statistisk teori, fortsättningskurs","hp":6.0,"l":"A1N","tm":true},"TAOP18":{"n":"Optimering av försörjningskedjor","hp":6.0,"l":"A1F","tm":true},"TSFS12":{"n":"Autonoma farkoster - planering, reglering och lärande system","hp":6.0,"l":"A1N","tm":false},"TATA85":{"n":"Projektkurs i tillämpad matematik","hp":12.0,"l":"A1F","tm":true},"TSRT28":{"n":"Projektkurs i reglerteknik","hp":12.0,"l":"A1F","tm":false},"TBMT39":{"n":"Projektkurs i medicinsk teknik","hp":12.0,"l":"A1F","tm":false},"TBMT57":{"n":"Biomedicinsk optik","hp":6.0,"l":"A1F","tm":false},"TMQU47":{"n":"Kvalitetsutveckling och robust konstruktion","hp":6.0,"l":"A1N","tm":false},"TPPE53":{"n":"Finansiell värderingsmetodik","hp":6.0,"l":"A1F","tm":false},"TPPE66":{"n":"Företagsvärdering","hp":6.0,"l":"A1F","tm":false},"TPPE61":{"n":"Finansiell optimering","hp":6.0,"l":"A1F","tm":true},"TFYB13":{"n":"Projektkurs i teknisk fysik","hp":12.0,"l":"A1F","tm":false},"TSKS25":{"n":"Projektkurs i signalbehandling, kommunikation och nätverk","hp":12.0,"l":"A1F","tm":false},"TDDE15":{"n":"Avancerad maskininlärning","hp":6.0,"l":"A1F","tm":false},"TSBB22":{"n":"Projektkurs i bilder och grafik","hp":12.0,"l":"A1F","tm":false},"TDDD56":{"n":"Multicore- och GPU-Programmering","hp":6.0,"l":"A1N","tm":false},"TDDD08":{"n":"Logikprogrammering","hp":6.0,"l":"A1N","tm":false},"TQXX33":{"n":"Examensarbete","hp":30.0,"l":"A2E","tm":false}},"groups":{"TIAU":{"name":"Autonoma system","kind":"spec","c":{"TSRT92":"v","TSFS22":"v","TSRT08":"v","TSRT78":"v","TSRT09":"o","TSRT07":"v","TSRT14":"v","TSFS12":"o","TATA85":"o/v","TSRT28":"o/v"}},"TMBA":{"name":"Beräkningsmatematik och analys","kind":"profile","c":{"TAMS32":"v","TAMS46":"v","TATA34":"v","TATA55":"v","TATA74":"v","TATM85":"v","TATA71":"v","TANA15":"v","TATA27":"v","TATA54":"v","TATA64":"v","TATA66":"v","TAMS48":"o","TATA78":"v","TATB10":"v","TATM38":"v"}},"TIBM":{"name":"Biomedicinsk modellering och simulering","kind":"spec","c":{"TBME04":"o","TBMT42":"o","TBMT01":"v","TBMT09":"o","TBME08":"o","TBMT39":"o","TBMT57":"v"}},"TIKV":{"name":"Datadriven verksamhetsutveckling","kind":"spec","c":{"TMQU03":"o","TMQU12":"o","TMQU31":"o","TEIO13":"v","TMQU04":"o","TMQU13":"v","TATA85":"o","TMQU47":"v"}},"TIFM":{"name":"Finansiell matematik","kind":"spec","c":{"TEAE01":"o","TPPE17":"o","TPPE29":"v","TAMS29":"v","TPPE32":"v","TPPE33":"v","TATA85":"o","TPPE53":"v","TPPE66":"v","TPPE61":"o"}},"TIFY":{"name":"Fysik","kind":"spec","c":{"TFYA18":"o","TFYA40":"o","TFFY54":"v","TFYA12":"v","TATA75":"v","TFYA17":"v","TFYA36":"v","TFYB13":"o"}},"TIMI":{"name":"Maskininlärning och datadriven analys","kind":"spec","c":{"TSKS15":"o","TSBB19":"v","TSRT92":"v","TSKS38":"o","TDDE09":"v","TDDE07":"o","TDDE70":"o","TATA85":"o/v","TBMT39":"o/v","TSKS25":"o/v","TSRT28":"o/v","TDDE15":"v"}},"TMSO":{"name":"Matematisk statistik och optimeringslära","kind":"profile","c":{"TAMS32":"v","TAMS46":"v","TAOP34":"v","TAMS41":"v","TAOP04":"v","TAMS39":"v","TANA15":"v","TATA64":"v","TAMS48":"o","TAMS43":"v","TAMS17":"v","TAOP18":"v"}},"TIMD":{"name":"Matematiskt datorseende","kind":"spec","c":{"TSBB08":"o","TSDT14":"o","TSBB21":"o","TSRT78":"v","TSBB34":"v","TSBB33":"o","TDDE70":"v","TSBB22":"o","TDDD56":"v"}},"TITD":{"name":"Teoretisk datalogi","kind":"spec","c":{"TDDD38":"v","TDDD72":"o","TDDD20":"o","TDDD95":"v","TATA85":"o","TDDD08":"v"}}},"general":{"TEAE01":"o/v","TGTU49":"v","THEN18":"v","TINT02":"v","TEIO94":"o/v","TGTU84":"v","TGTU98":"v","TSFS22":"v","TQXX33":"o"},"early":{"TATB01":"o","TANA82":"o","TATA24":"o","TATB05":"o","TATA41":"o","TATA42":"o","TDDE44":"o","TFYB04":"o","TBMT32":"v","TFFM12":"v","TATA40":"f","TGTU96":"f","TATA43":"o","TANA21":"o","TATA32":"o","TATA44":"o","TATA45":"o","TFYB06":"o","TAMS14":"o","TAOP07":"o","TATA53":"o","TFYB07":"o","TAOP24":"o","TSKS34":"o","TPTE06":"v","TAMS24":"o","TATA77":"o","TDDE71":"o","TDDE69":"o","TSBB36":"o","TATB06":"o","TSKS37":"o","TSRT12":"o","TINT01":"v","TANA31":"o"}},{"id":"5480","label":"HT 2023","rules":{"profileHp":30,"profileAdvCourses":4,"specHp":36,"outsideMax":18,"businessText":["TEAE01","TEIO94"]},"business":["TEAE01","TEAE05","TEIO94"],"courses":{"TATB01":{"n":"Matematisk grundkurs","hp":6.0,"l":"G1N","tm":true},"TANA82":{"n":"Ingenjörsprojekt","hp":6.0,"l":"G1N","tm":true},"TATA24":{"n":"Linjär algebra","hp":8.0,"l":"G1N","tm":true},"TATB05":{"n":"Matematisk modellering","hp":4.0,"l":"G1N","tm":true},"TATA40":{"n":"Matematiska utblickar","hp":1.0,"l":"G1N","tm":true},"TATA41":{"n":"Envariabelanalys 1","hp":6.0,"l":"G1F","tm":true},"TATA42":{"n":"Envariabelanalys 2","hp":6.0,"l":"G1F","tm":true},"TDDE44":{"n":"Programmering, grundkurs","hp":8.0,"l":"G1N","tm":false},"TFYB04":{"n":"Mekanik och grundläggande fysikaliska begrepp","hp":8.0,"l":"G1F","tm":false},"TBMT32":{"n":"Medicintekniska utblickar","hp":2.0,"l":"G1N","tm":false},"TFFM12":{"n":"Fysikaliska utblickar","hp":2.0,"l":"G1N","tm":false},"TGTU96":{"n":"Hållbar studiesituation","hp":2.0,"l":"G1N","tm":false},"TATA43":{"n":"Flervariabelanalys","hp":8.0,"l":"G1F","tm":true},"TANA21":{"n":"Beräkningsmatematik","hp":6.0,"l":"G1F","tm":true},"TATA32":{"n":"Diskret matematik","hp":8.0,"l":"G1N","tm":true},"TATA44":{"n":"Vektoranalys","hp":4.0,"l":"G1F","tm":true},"TATA45":{"n":"Komplex analys","hp":6.0,"l":"G2F","tm":true},"TFYB06":{"n":"Elektromagnetism","hp":6.0,"l":"G2F","tm":false},"TAMS14":{"n":"Sannolikhetslära","hp":4.0,"l":"G1F","tm":true},"TAOP07":{"n":"Optimeringslära grundkurs","hp":6.0,"l":"G1F","tm":true},"TATA53":{"n":"Linjär algebra, överkurs","hp":6.0,"l":"G2F","tm":true},"TFYB07":{"n":"Elektromagnetiska vågor","hp":2.0,"l":"G2F","tm":false},"TAOP24":{"n":"Optimeringslära fortsättningskurs","hp":6.0,"l":"G2F","tm":true},"TSKS34":{"n":"Komplexa nätverk","hp":6.0,"l":"G2F","tm":false},"TPTE06":{"n":"Praktik","hp":6.0,"l":"G2F","tm":false},"TAMS24":{"n":"Statistisk teori, grk","hp":4.0,"l":"G2F","tm":true},"TATA77":{"n":"Fourieranalys","hp":6.0,"l":"G2F","tm":true},"TDDE71":{"n":"Programmering och datastrukturer","hp":8.0,"l":"G2F","tm":false},"TDDE69":{"n":"Maskininlärning, grundkurs","hp":6.0,"l":"G2F","tm":false},"TSBB36":{"n":"Multidimensionell signal- och bildanalys","hp":6.0,"l":"G2F","tm":false},"TATB12":{"n":"Teknisk matematik kandidatprojekt","hp":16.0,"l":"G2X","tm":true},"TSKS37":{"n":"Tekniska beräkningar i Python","hp":2.0,"l":"G1F","tm":false},"TSRT12":{"n":"Reglerteknik","hp":6.0,"l":"G2F","tm":false},"TINT01":{"n":"Introduktionskurs i interkulturell kompetens","hp":2.0,"l":"G1N","tm":false},"TANA31":{"n":"Beräkningsmetoder för ordinära och partiella differentialekvationer","hp":6.0,"l":"A1N","tm":true},"TEAE01":{"n":"Industriell ekonomi, grundkurs","hp":6.0,"l":"G1F","tm":false},"TGTU49":{"n":"Teknikhistoria","hp":6.0,"l":"G1F","tm":false},"TAMS32":{"n":"Stokastiska processer","hp":6.0,"l":"A1N","tm":true},"TAMS46":{"n":"Sannolikhetslära, fortsättningskurs","hp":6.0,"l":"A1N","tm":true},"TATA34":{"n":"Analys, överkurs","hp":6.0,"l":"G2F","tm":true},"TATA55":{"n":"Abstrakt algebra","hp":6.0,"l":"G2F","tm":true},"TATA74":{"n":"Differentialgeometri","hp":6.0,"l":"G2F","tm":true},"TATM85":{"n":"Funktionalanalys","hp":6.0,"l":"A1N","tm":true},"TATA71":{"n":"Ordinära differentialekvationer och dynamiska system","hp":6.0,"l":"G2F","tm":true},"TAOP34":{"n":"Optimering av stora system","hp":6.0,"l":"A1N","tm":true},"TAMS41":{"n":"Statistisk modellering med regressionsmetoder","hp":6.0,"l":"A1N","tm":true},"TAOP04":{"n":"Matematisk optimering","hp":6.0,"l":"A1N","tm":true},"TSRT92":{"n":"Modellering och inlärning för dynamiska system","hp":6.0,"l":"A1N","tm":false},"TSRT08":{"n":"Optimal styrning","hp":6.0,"l":"A1N","tm":false},"TSRT78":{"n":"Digital signalbehandling","hp":6.0,"l":"A1F","tm":false},"TBME04":{"n":"Anatomi och fysiologi","hp":6.0,"l":"G2F","tm":false},"TBMT42":{"n":"Systembiologi, digitala tvillingar och AI","hp":6.0,"l":"A1N","tm":false},"TBMT01":{"n":"Analys av bioelektriska signaler","hp":6.0,"l":"A1F","tm":false},"TMQU03":{"n":"Offensiv kvalitetsutveckling, gk","hp":6.0,"l":"G2F","tm":false},"TMQU12":{"n":"Lean Production","hp":6.0,"l":"A1N","tm":false},"TPPE17":{"n":"Corporate Finance","hp":6.0,"l":"G2F","tm":false},"TPPE29":{"n":"Finansiella marknader och instrument","hp":6.0,"l":"A1N","tm":false},"TFYA18":{"n":"Fysikens matematiska metoder","hp":6.0,"l":"A1N","tm":true},"TFYA40":{"n":"Analytisk mekanik","hp":6.0,"l":"A1N","tm":true},"TFFY54":{"n":"Kvantmekanik","hp":6.0,"l":"A1N","tm":false},"TFYB14":{"n":"Termodynamik och statistisk mekanik","hp":6.0,"l":"G2F","tm":false},"TSKS15":{"n":"Detektion och estimering av signaler","hp":6.0,"l":"A1N","tm":false},"TSBB19":{"n":"Maskininlärning för datorseende","hp":6.0,"l":"A1N","tm":false},"TSKS38":{"n":"Distribuerad informationsbehandling och maskininlärning","hp":6.0,"l":"A1N","tm":false},"TSBB08":{"n":"Digital bildbehandling grundkurs","hp":6.0,"l":"A1N","tm":false},"TSDT14":{"n":"Signalteori","hp":6.0,"l":"A1N","tm":false},"TSBB21":{"n":"Beräkningsfotografi","hp":6.0,"l":"A1F","tm":false},"TDDD38":{"n":"Avancerad programmering i C++","hp":6.0,"l":"A1N","tm":false},"TDDD72":{"n":"Logik","hp":6.0,"l":"G1F","tm":false},"TGT100":{"n":"Åtgärder för att möta den globala klimatförändringen","hp":6.0,"l":"G2F","tm":false},"THEN18":{"n":"Engelska","hp":6.0,"l":"G1N","tm":false},"TINT02":{"n":"Interkulturell kompetens och interkulturell kommunikation, fortsättningskurs","hp":6.0,"l":"G2F","tm":false},"TGTU84":{"n":"Mångfald och genus inom teknikutveckling","hp":6.0,"l":"G1F","tm":false},"TGTU98":{"n":"Matematik, vetenskap och samhälle","hp":6.0,"l":"G1F","tm":false},"TANA15":{"n":"Numerisk linjär algebra","hp":6.0,"l":"A1N","tm":true},"TATA27":{"n":"Partiella differentialekvationer","hp":6.0,"l":"A1N","tm":true},"TATA54":{"n":"Talteori","hp":6.0,"l":"G2F","tm":true},"TATA64":{"n":"Grafteori","hp":6.0,"l":"A1N","tm":true},"TATA66":{"n":"Fourier- och waveletanalys","hp":6.0,"l":"A1N","tm":true},"TAMS39":{"n":"Multivariat statistik","hp":6.0,"l":"A1N","tm":true},"TSRT09":{"n":"Reglerteori","hp":6.0,"l":"A1N","tm":false},"TSRT07":{"n":"Industriell reglerteknik","hp":6.0,"l":"A1N","tm":false},"TSRT14":{"n":"Sensorfusion","hp":6.0,"l":"A1N","tm":false},"TBMT09":{"n":"Fysiologiska tryck och flöden","hp":6.0,"l":"A1N","tm":false},"TBME08":{"n":"Biomedicinsk modellering och simulering","hp":6.0,"l":"A1N","tm":false},"TMQU31":{"n":"Statistisk kvalitetsstyrning","hp":6.0,"l":"A1N","tm":false},"TEIO13":{"n":"Ledarskap och industriellt förändringsarbete","hp":6.0,"l":"A1N","tm":false},"TMQU04":{"n":"Six Sigma Quality","hp":6.0,"l":"A1F","tm":false},"TMQU13":{"n":"Kundfokuserad produkt- och tjänsteutveckling","hp":6.0,"l":"A1N","tm":false},"TAMS29":{"n":"Stokastiska processer för finansmarknadsmodeller","hp":6.0,"l":"A1F","tm":true},"TPPE32":{"n":"Finansiell riskhantering","hp":6.0,"l":"A1F","tm":false},"TPPE33":{"n":"Portföljförvaltning","hp":6.0,"l":"A1N","tm":false},"TATA75":{"n":"Relativitetsteori","hp":6.0,"l":"A1F","tm":true},"TFYA17":{"n":"Projektlaborationer i fysik","hp":6.0,"l":"A1F","tm":false},"TDDE70":{"n":"Djup maskininlärning","hp":6.0,"l":"A1F","tm":false},"TDDE07":{"n":"Bayesianska metoder","hp":6.0,"l":"A1F","tm":false},"TDDE09":{"n":"Språkteknologi","hp":6.0,"l":"A1F","tm":false},"TSBB34":{"n":"Datorseende för videoanalys","hp":6.0,"l":"A1N","tm":false},"TSBB33":{"n":"3D-datorseende","hp":6.0,"l":"A1N","tm":false},"TDDD20":{"n":"Konstruktion och analys av algoritmer","hp":6.0,"l":"A1N","tm":false},"TDDD95":{"n":"Algoritmisk problemlösning","hp":6.0,"l":"A1F","tm":false},"TDDE91":{"n":"Säkerhet och integritet för maskininlärning","hp":6.0,"l":"A1N","tm":false},"TEAE05":{"n":"Resursteori","hp":6.0,"l":"G1N","tm":false},"TAMS48":{"n":"Matematisk modellering för hållbar utveckling","hp":6.0,"l":"A1N","tm":true},"TATA78":{"n":"Komplex analys fk","hp":6.0,"l":"A1N","tm":true},"TATB10":{"n":"Matrisanalys","hp":6.0,"l":"A1N","tm":true},"TATM38":{"n":"Matematiska modeller i biologi","hp":6.0,"l":"A1N","tm":true},"TAMS43":{"n":"Sannolikhetsteori och bayesianska nätverk","hp":6.0,"l":"A1N","tm":true},"TAMS17":{"n":"Statistisk teori, fortsättningskurs","hp":6.0,"l":"A1N","tm":true},"TAOP18":{"n":"Optimering av försörjningskedjor","hp":6.0,"l":"A1F","tm":true},"TSFS12":{"n":"Autonoma farkoster - planering, reglering och lärande system","hp":6.0,"l":"A1N","tm":false},"TATA85":{"n":"Projektkurs i tillämpad matematik","hp":12.0,"l":"A1F","tm":true},"TSRT28":{"n":"Projektkurs i reglerteknik","hp":12.0,"l":"A1F","tm":false},"TBMT39":{"n":"Projektkurs i medicinsk teknik","hp":12.0,"l":"A1F","tm":false},"TBMT57":{"n":"Biomedicinsk optik","hp":6.0,"l":"A1F","tm":false},"TMQU47":{"n":"Kvalitetsutveckling och robust konstruktion","hp":6.0,"l":"A1N","tm":false},"TPPE61":{"n":"Finansiell optimering","hp":6.0,"l":"A1F","tm":true},"TPPE53":{"n":"Finansiell värderingsmetodik","hp":6.0,"l":"A1F","tm":false},"TPPE66":{"n":"Företagsvärdering","hp":6.0,"l":"A1F","tm":false},"TFYB13":{"n":"Projektkurs i teknisk fysik","hp":12.0,"l":"A1F","tm":false},"TFYA36":{"n":"Kaos och icke-linjära fenomen","hp":6.0,"l":"A1N","tm":true},"TSKS25":{"n":"Projektkurs i signalbehandling, kommunikation och nätverk","hp":12.0,"l":"A1F","tm":false},"TDDE15":{"n":"Avancerad maskininlärning","hp":6.0,"l":"A1F","tm":false},"TSBB22":{"n":"Projektkurs i bilder och grafik","hp":12.0,"l":"A1F","tm":false},"TDDD56":{"n":"Multicore- och GPU-Programmering","hp":6.0,"l":"A1N","tm":false},"TDDD08":{"n":"Logikprogrammering","hp":6.0,"l":"A1N","tm":false},"TQXX33":{"n":"Examensarbete","hp":30.0,"l":"A2E","tm":false}},"groups":{"TIAU":{"name":"Autonoma system","kind":"spec","c":{"TSRT92":"v","TSRT08":"v","TSRT78":"v","TSRT09":"o","TSRT07":"v","TSRT14":"v","TSFS12":"o","TATA85":"o/v","TSRT28":"o/v"}},"TMBA":{"name":"Beräkningsmatematik och analys","kind":"profile","c":{"TAMS32":"v","TAMS46":"v","TATA34":"v","TATA55":"v","TATA74":"v","TATM85":"v","TATA71":"v","TANA15":"v","TATA27":"v","TATA54":"v","TATA64":"v","TATA66":"v","TAMS48":"o","TATA78":"v","TATB10":"v","TATM38":"v"}},"TIBM":{"name":"Biomedicinsk modellering och simulering","kind":"spec","c":{"TBME04":"o","TBMT42":"o","TBMT01":"v","TBMT09":"o","TBME08":"o","TBMT39":"o","TBMT57":"v"}},"TIKV":{"name":"Datadriven verksamhetsutveckling","kind":"spec","c":{"TMQU03":"o","TMQU12":"o","TMQU31":"o","TEIO13":"v","TMQU04":"o","TMQU13":"v","TATA85":"o","TMQU47":"v"}},"TIFM":{"name":"Finansiell matematik","kind":"spec","c":{"TEAE01":"o","TPPE17":"o","TPPE29":"v","TAMS29":"v","TPPE32":"v","TPPE33":"v","TATA85":"o","TPPE61":"o","TPPE53":"v","TPPE66":"v"}},"TIFY":{"name":"Fysik","kind":"spec","c":{"TFYA18":"o","TFYA40":"o","TFFY54":"v","TFYB14":"v","TATA75":"v","TFYA17":"v","TFYB13":"o","TFYA36":"v"}},"TIMI":{"name":"Maskininlärning och datadriven analys","kind":"spec","c":{"TSKS15":"o","TSBB19":"v","TSRT92":"v","TSKS38":"o","TDDE70":"o","TDDE07":"o","TDDE09":"v","TATA85":"o/v","TBMT39":"o/v","TSKS25":"o/v","TSRT28":"o/v","TDDE15":"v"}},"TMSO":{"name":"Matematisk statistik och optimeringslära","kind":"profile","c":{"TAMS32":"v","TAMS46":"v","TAOP34":"v","TAMS41":"v","TAOP04":"v","TAMS39":"v","TANA15":"v","TATA64":"v","TAMS48":"o","TAMS43":"v","TAMS17":"v","TAOP18":"v"}},"TIMD":{"name":"Matematiskt datorseende","kind":"spec","c":{"TSBB08":"o","TSDT14":"o","TSBB21":"o","TSRT78":"v","TDDE70":"v","TSBB34":"v","TSBB33":"o","TSBB22":"o","TDDD56":"v"}},"TITD":{"name":"Teoretisk datalogi","kind":"spec","c":{"TDDD38":"v","TDDD72":"o","TDDD20":"o","TDDD95":"v","TATA85":"o","TDDD08":"v"}}},"general":{"TEAE01":"o/v","TINT01":"v","TGTU49":"v","TGT100":"v","THEN18":"v","TINT02":"v","TGTU84":"v","TGTU98":"v","TDDE91":"v","TEAE05":"o/v","TQXX33":"o"},"early":{"TATB01":"o","TANA82":"o","TATA24":"o","TATB05":"o","TATA40":"f","TATA41":"o","TATA42":"o","TDDE44":"o","TFYB04":"o","TBMT32":"v","TFFM12":"v","TGTU96":"f","TATA43":"o","TANA21":"o","TATA32":"o","TATA44":"o","TATA45":"o","TFYB06":"o","TAMS14":"o","TAOP07":"o","TATA53":"o","TFYB07":"o","TAOP24":"o","TSKS34":"o","TPTE06":"v","TAMS24":"o","TATA77":"o","TDDE71":"o","TDDE69":"o","TSBB36":"o","TATB12":"o","TSKS37":"o","TSRT12":"o","TINT01":"v","TANA31":"o"}},{"id":"5763","label":"HT 2024","rules":{"profileHp":30,"profileAdvCourses":4,"specHp":36,"outsideMax":18,"businessText":["TEAE01","TEAE05"]},"business":["TEAE01","TEAE05"],"courses":{"TATB01":{"n":"Matematisk grundkurs","hp":6.0,"l":"G1N","tm":true},"TANA82":{"n":"Ingenjörsprojekt","hp":6.0,"l":"G1N","tm":true},"TATA24":{"n":"Linjär algebra","hp":8.0,"l":"G1N","tm":true},"TATB05":{"n":"Matematisk modellering","hp":4.0,"l":"G1N","tm":true},"TATA40":{"n":"Matematiska utblickar","hp":1.0,"l":"G1N","tm":true},"TATA41":{"n":"Envariabelanalys 1","hp":6.0,"l":"G1F","tm":true},"TATA42":{"n":"Envariabelanalys 2","hp":6.0,"l":"G1F","tm":true},"TDDE44":{"n":"Programmering, grundkurs","hp":8.0,"l":"G1N","tm":false},"TFYB04":{"n":"Mekanik och grundläggande fysikaliska begrepp","hp":8.0,"l":"G1F","tm":false},"TBMT32":{"n":"Medicintekniska utblickar","hp":2.0,"l":"G1N","tm":false},"TFFM12":{"n":"Fysikaliska utblickar","hp":2.0,"l":"G1N","tm":false},"TGTU96":{"n":"Hållbar studiesituation","hp":2.0,"l":"G1N","tm":false},"TATA43":{"n":"Flervariabelanalys","hp":8.0,"l":"G1F","tm":true},"TANA21":{"n":"Beräkningsmatematik","hp":6.0,"l":"G1F","tm":true},"TATA32":{"n":"Diskret matematik","hp":8.0,"l":"G1N","tm":true},"TATA44":{"n":"Vektoranalys","hp":4.0,"l":"G1F","tm":true},"TATA45":{"n":"Komplex analys","hp":6.0,"l":"G2F","tm":true},"TFYB06":{"n":"Elektromagnetism","hp":6.0,"l":"G2F","tm":false},"TAMS14":{"n":"Sannolikhetslära","hp":4.0,"l":"G1F","tm":true},"TAOP07":{"n":"Optimeringslära grundkurs","hp":6.0,"l":"G1F","tm":true},"TATA53":{"n":"Linjär algebra, överkurs","hp":6.0,"l":"G2F","tm":true},"TFYB07":{"n":"Elektromagnetiska vågor","hp":2.0,"l":"G2F","tm":false},"TAOP24":{"n":"Optimeringslära fortsättningskurs","hp":6.0,"l":"G2F","tm":true},"TSKS34":{"n":"Komplexa nätverk","hp":6.0,"l":"G2F","tm":false},"TPTE06":{"n":"Praktik","hp":6.0,"l":"G2F","tm":false},"TAMS24":{"n":"Statistisk teori, grk","hp":4.0,"l":"G2F","tm":true},"TATA77":{"n":"Fourieranalys","hp":6.0,"l":"G2F","tm":true},"TDDE71":{"n":"Programmering och datastrukturer","hp":8.0,"l":"G2F","tm":false},"TDDE69":{"n":"Maskininlärning, grundkurs","hp":6.0,"l":"G2F","tm":false},"TSBB36":{"n":"Multidimensionell signal- och bildanalys","hp":6.0,"l":"G2F","tm":false},"TATB12":{"n":"Teknisk matematik kandidatprojekt","hp":16.0,"l":"G2X","tm":true},"TSKS37":{"n":"Tekniska beräkningar i Python","hp":2.0,"l":"G1F","tm":false},"TSRT12":{"n":"Reglerteknik","hp":6.0,"l":"G2F","tm":false},"TINT01":{"n":"Introduktionskurs i interkulturell kompetens","hp":2.0,"l":"G1N","tm":false},"TANA31":{"n":"Beräkningsmetoder för ordinära och partiella differentialekvationer","hp":6.0,"l":"A1N","tm":true},"TEAE01":{"n":"Industriell ekonomi, grundkurs","hp":6.0,"l":"G1F","tm":false},"TEAE05":{"n":"Resursteori","hp":6.0,"l":"G1N","tm":false},"TGTU49":{"n":"Teknikhistoria","hp":6.0,"l":"G1F","tm":false},"TAMS32":{"n":"Stokastiska processer","hp":6.0,"l":"A1N","tm":true},"TAMS46":{"n":"Sannolikhetslära, fortsättningskurs","hp":6.0,"l":"A1N","tm":true},"TATA34":{"n":"Analys, överkurs","hp":6.0,"l":"G2F","tm":true},"TATA55":{"n":"Abstrakt algebra","hp":6.0,"l":"G2F","tm":true},"TATA74":{"n":"Differentialgeometri","hp":6.0,"l":"G2F","tm":true},"TATM85":{"n":"Funktionalanalys","hp":6.0,"l":"A1N","tm":true},"TATA71":{"n":"Ordinära differentialekvationer och dynamiska system","hp":6.0,"l":"G2F","tm":true},"TAOP34":{"n":"Optimering av stora system","hp":6.0,"l":"A1N","tm":true},"TAMS41":{"n":"Statistisk modellering med regressionsmetoder","hp":6.0,"l":"A1N","tm":true},"TAOP04":{"n":"Matematisk optimering","hp":6.0,"l":"A1N","tm":true},"TSRT92":{"n":"Modellering och inlärning för dynamiska system","hp":6.0,"l":"A1N","tm":false},"TSRT08":{"n":"Optimal styrning","hp":6.0,"l":"A1N","tm":false},"TSRT78":{"n":"Digital signalbehandling","hp":6.0,"l":"A1F","tm":false},"TBME04":{"n":"Anatomi och fysiologi","hp":6.0,"l":"G2F","tm":false},"TBMT42":{"n":"Systembiologi, digitala tvillingar och AI","hp":6.0,"l":"A1N","tm":false},"TBMT01":{"n":"Analys av bioelektriska signaler","hp":6.0,"l":"A1F","tm":false},"TMQU03":{"n":"Offensiv kvalitetsutveckling, gk","hp":6.0,"l":"G2F","tm":false},"TMQU12":{"n":"Lean Production","hp":6.0,"l":"A1N","tm":false},"TPPE17":{"n":"Corporate Finance","hp":6.0,"l":"G2F","tm":false},"TPPE29":{"n":"Finansiella marknader och instrument","hp":6.0,"l":"A1N","tm":false},"TFYA18":{"n":"Fysikens matematiska metoder","hp":6.0,"l":"A1N","tm":true},"TFYA40":{"n":"Analytisk mekanik","hp":6.0,"l":"A1N","tm":true},"TFFY54":{"n":"Kvantmekanik","hp":6.0,"l":"A1N","tm":false},"TFYB14":{"n":"Termodynamik och statistisk mekanik","hp":6.0,"l":"G2F","tm":false},"TSKS15":{"n":"Detektion och estimering av signaler","hp":6.0,"l":"A1N","tm":false},"TSBB19":{"n":"Maskininlärning för datorseende","hp":6.0,"l":"A1N","tm":false},"TSKS38":{"n":"Distribuerad informationsbehandling och maskininlärning","hp":6.0,"l":"A1N","tm":false},"TSBB08":{"n":"Digital bildbehandling grundkurs","hp":6.0,"l":"A1N","tm":false},"TSDT14":{"n":"Signalteori","hp":6.0,"l":"A1N","tm":false},"TSBB21":{"n":"Beräkningsfotografi","hp":6.0,"l":"A1F","tm":false},"TDDD38":{"n":"Avancerad programmering i C++","hp":6.0,"l":"A1N","tm":false},"TDDD72":{"n":"Logik","hp":6.0,"l":"G1F","tm":false},"TGT100":{"n":"Åtgärder för att möta den globala klimatförändringen","hp":6.0,"l":"G2F","tm":false},"THEN18":{"n":"Engelska","hp":6.0,"l":"G1N","tm":false},"TINT02":{"n":"Interkulturell kompetens och interkulturell kommunikation, fortsättningskurs","hp":6.0,"l":"G2F","tm":false},"TGTU84":{"n":"Mångfald och genus inom teknikutveckling","hp":6.0,"l":"G1F","tm":false},"TGTU98":{"n":"Matematik, vetenskap och samhälle","hp":6.0,"l":"G1F","tm":false},"TANA15":{"n":"Numerisk linjär algebra","hp":6.0,"l":"A1N","tm":true},"TATA27":{"n":"Partiella differentialekvationer","hp":6.0,"l":"A1N","tm":true},"TATA54":{"n":"Talteori","hp":6.0,"l":"G2F","tm":true},"TATA64":{"n":"Grafteori","hp":6.0,"l":"A1N","tm":true},"TATA66":{"n":"Fourier- och waveletanalys","hp":6.0,"l":"A1N","tm":true},"TAMS39":{"n":"Multivariat statistik","hp":6.0,"l":"A1N","tm":true},"TSRT09":{"n":"Reglerteori","hp":6.0,"l":"A1N","tm":false},"TSRT07":{"n":"Industriell reglerteknik","hp":6.0,"l":"A1N","tm":false},"TSRT14":{"n":"Sensorfusion","hp":6.0,"l":"A1N","tm":false},"TBMT09":{"n":"Fysiologiska tryck och flöden","hp":6.0,"l":"A1N","tm":false},"TBME08":{"n":"Biomedicinsk modellering och simulering","hp":6.0,"l":"A1N","tm":false},"TMQU31":{"n":"Statistisk kvalitetsstyrning","hp":6.0,"l":"A1N","tm":false},"TEIO13":{"n":"Ledarskap och industriellt förändringsarbete","hp":6.0,"l":"A1N","tm":false},"TMQU04":{"n":"Six Sigma Quality","hp":6.0,"l":"A1F","tm":false},"TMQU13":{"n":"Kundfokuserad produkt- och tjänsteutveckling","hp":6.0,"l":"A1N","tm":false},"TAMS29":{"n":"Stokastiska processer för finansmarknadsmodeller","hp":6.0,"l":"A1F","tm":true},"TPPE32":{"n":"Finansiell riskhantering","hp":6.0,"l":"A1F","tm":false},"TPPE33":{"n":"Portföljförvaltning","hp":6.0,"l":"A1N","tm":false},"TATA75":{"n":"Relativitetsteori","hp":6.0,"l":"A1F","tm":true},"TFYA17":{"n":"Projektlaborationer i fysik","hp":6.0,"l":"A1F","tm":false},"TDDE70":{"n":"Djup maskininlärning","hp":6.0,"l":"A1F","tm":false},"TDDE07":{"n":"Bayesianska metoder","hp":6.0,"l":"A1F","tm":false},"TDDE09":{"n":"Språkteknologi","hp":6.0,"l":"A1F","tm":false},"TSBB34":{"n":"Datorseende för videoanalys","hp":6.0,"l":"A1N","tm":false},"TSBB33":{"n":"3D-datorseende","hp":6.0,"l":"A1N","tm":false},"TDDD20":{"n":"Konstruktion och analys av algoritmer","hp":6.0,"l":"A1N","tm":false},"TDDD95":{"n":"Algoritmisk problemlösning","hp":6.0,"l":"A1F","tm":false},"TDDE91":{"n":"Säkerhet och integritet för maskininlärning","hp":6.0,"l":"A1N","tm":false},"TAMS48":{"n":"Matematisk modellering för hållbar utveckling","hp":6.0,"l":"A1N","tm":true},"TATA78":{"n":"Komplex analys fk","hp":6.0,"l":"A1N","tm":true},"TATB10":{"n":"Matrisanalys","hp":6.0,"l":"A1N","tm":true},"TATM38":{"n":"Matematiska modeller i biologi","hp":6.0,"l":"A1N","tm":true},"TAMS43":{"n":"Sannolikhetsteori och bayesianska nätverk","hp":6.0,"l":"A1N","tm":true},"TAMS17":{"n":"Statistisk teori, fortsättningskurs","hp":6.0,"l":"A1N","tm":true},"TAOP18":{"n":"Optimering av försörjningskedjor","hp":6.0,"l":"A1F","tm":true},"TSFS12":{"n":"Autonoma farkoster - planering, reglering och lärande system","hp":6.0,"l":"A1N","tm":false},"TATA85":{"n":"Projektkurs i tillämpad matematik","hp":12.0,"l":"A1F","tm":true},"TSRT28":{"n":"Projektkurs i reglerteknik","hp":12.0,"l":"A1F","tm":false},"TBMT39":{"n":"Projektkurs i medicinsk teknik","hp":12.0,"l":"A1F","tm":false},"TBMT57":{"n":"Biomedicinsk optik","hp":6.0,"l":"A1F","tm":false},"TMQU47":{"n":"Kvalitetsutveckling och robust konstruktion","hp":6.0,"l":"A1N","tm":false},"TPPE61":{"n":"Finansiell optimering","hp":6.0,"l":"A1F","tm":true},"TPPE53":{"n":"Finansiell värderingsmetodik","hp":6.0,"l":"A1F","tm":false},"TPPE66":{"n":"Företagsvärdering","hp":6.0,"l":"A1F","tm":false},"TFYB13":{"n":"Projektkurs i teknisk fysik","hp":12.0,"l":"A1F","tm":false},"TFYA36":{"n":"Kaos och icke-linjära fenomen","hp":6.0,"l":"A1N","tm":true},"TSKS25":{"n":"Projektkurs i signalbehandling, kommunikation och nätverk","hp":12.0,"l":"A1F","tm":false},"TDDE15":{"n":"Avancerad maskininlärning","hp":6.0,"l":"A1F","tm":false},"TSBB22":{"n":"Projektkurs i bilder och grafik","hp":12.0,"l":"A1F","tm":false},"TDDD56":{"n":"Multicore- och GPU-Programmering","hp":6.0,"l":"A1N","tm":false},"TDDD08":{"n":"Logikprogrammering","hp":6.0,"l":"A1N","tm":false},"TQXX33":{"n":"Examensarbete","hp":30.0,"l":"A2E","tm":false}},"groups":{"TIAU":{"name":"Autonoma system","kind":"spec","c":{"TSRT92":"v","TSRT08":"v","TSRT78":"v","TSRT09":"o","TSRT07":"v","TSRT14":"v","TSFS12":"o","TATA85":"o/v","TSRT28":"o/v"}},"TMBA":{"name":"Beräkningsmatematik och analys","kind":"profile","c":{"TAMS32":"v","TAMS46":"v","TATA34":"v","TATA55":"v","TATA74":"v","TATM85":"v","TATA71":"v","TANA15":"v","TATA27":"v","TATA54":"v","TATA64":"v","TATA66":"v","TAMS48":"o","TATA78":"v","TATB10":"v","TATM38":"v"}},"TIBM":{"name":"Biomedicinsk modellering och simulering","kind":"spec","c":{"TBME04":"o","TBMT42":"o","TBMT01":"v","TBMT09":"o","TBME08":"o","TBMT39":"o","TBMT57":"v"}},"TIKV":{"name":"Datadriven verksamhetsutveckling","kind":"spec","c":{"TMQU03":"o","TMQU12":"o","TMQU31":"o","TEIO13":"v","TMQU04":"o","TMQU13":"v","TATA85":"o","TMQU47":"v"}},"TIFM":{"name":"Finansiell matematik","kind":"spec","c":{"TEAE01":"o","TPPE17":"o","TPPE29":"v","TAMS29":"v","TPPE32":"v","TPPE33":"v","TATA85":"o","TPPE61":"o","TPPE53":"v","TPPE66":"v"}},"TIFY":{"name":"Fysik","kind":"spec","c":{"TFYA18":"o","TFYA40":"o","TFFY54":"v","TFYB14":"v","TATA75":"v","TFYA17":"v","TFYB13":"o","TFYA36":"v"}},"TIMI":{"name":"Maskininlärning och datadriven analys","kind":"spec","c":{"TSKS15":"o","TSBB19":"v","TSRT92":"v","TSKS38":"o","TDDE70":"o","TDDE07":"o","TDDE09":"v","TATA85":"o/v","TBMT39":"o/v","TSKS25":"o/v","TSRT28":"o/v","TDDE15":"v"}},"TMSO":{"name":"Matematisk statistik och optimeringslära","kind":"profile","c":{"TAMS32":"v","TAMS46":"v","TAOP34":"v","TAMS41":"v","TAOP04":"v","TAMS39":"v","TANA15":"v","TATA64":"v","TAMS48":"o","TAMS43":"v","TAMS17":"v","TAOP18":"v"}},"TIMD":{"name":"Matematiskt datorseende","kind":"spec","c":{"TSBB08":"o","TSDT14":"o","TSBB21":"o","TSRT78":"v","TDDE70":"v","TSBB34":"v","TSBB33":"o","TSBB22":"o","TDDD56":"v"}},"TITD":{"name":"Teoretisk datalogi","kind":"spec","c":{"TDDD38":"v","TDDD72":"o","TDDD20":"o","TDDD95":"v","TATA85":"o","TDDD08":"v"}}},"general":{"TEAE01":"o/v","TINT01":"v","TEAE05":"o/v","TGTU49":"v","TGT100":"v","THEN18":"v","TINT02":"v","TGTU84":"v","TGTU98":"v","TDDE91":"v","TQXX33":"o"},"early":{"TATB01":"o","TANA82":"o","TATA24":"o","TATB05":"o","TATA40":"f","TATA41":"o","TATA42":"o","TDDE44":"o","TFYB04":"o","TBMT32":"v","TFFM12":"v","TGTU96":"f","TATA43":"o","TANA21":"o","TATA32":"o","TATA44":"o","TATA45":"o","TFYB06":"o","TAMS14":"o","TAOP07":"o","TATA53":"o","TFYB07":"o","TAOP24":"o","TSKS34":"o","TPTE06":"v","TAMS24":"o","TATA77":"o","TDDE71":"o","TDDE69":"o","TSBB36":"o","TATB12":"o","TSKS37":"o","TSRT12":"o","TINT01":"v","TANA31":"o"}},{"id":"6051","label":"HT 2025","rules":{"profileHp":30,"profileAdvCourses":4,"specHp":36,"outsideMax":18,"businessText":["TEAE01","TEAE05"]},"business":["TEAE01","TEAE05"],"courses":{"TATB01":{"n":"Matematisk grundkurs","hp":6.0,"l":"G1N","tm":true},"TANA82":{"n":"Ingenjörsprojekt","hp":6.0,"l":"G1N","tm":true},"TATA24":{"n":"Linjär algebra","hp":8.0,"l":"G1N","tm":true},"TATB05":{"n":"Matematisk modellering","hp":4.0,"l":"G1N","tm":true},"TATA40":{"n":"Matematiska utblickar","hp":1.0,"l":"G1N","tm":true},"TATA41":{"n":"Envariabelanalys 1","hp":6.0,"l":"G1F","tm":true},"TATA42":{"n":"Envariabelanalys 2","hp":6.0,"l":"G1F","tm":true},"TDDE44":{"n":"Programmering, grundkurs","hp":8.0,"l":"G1N","tm":false},"TFYB04":{"n":"Mekanik och grundläggande fysikaliska begrepp","hp":8.0,"l":"G1F","tm":false},"TBMT32":{"n":"Medicintekniska utblickar","hp":2.0,"l":"G1N","tm":false},"TFFM12":{"n":"Fysikaliska utblickar","hp":2.0,"l":"G1N","tm":false},"TGTU96":{"n":"Hållbar studiesituation","hp":2.0,"l":"G1N","tm":false},"TATA43":{"n":"Flervariabelanalys","hp":8.0,"l":"G1F","tm":true},"TANA21":{"n":"Beräkningsmatematik","hp":6.0,"l":"G1F","tm":true},"TATA32":{"n":"Diskret matematik","hp":8.0,"l":"G1N","tm":true},"TATA44":{"n":"Vektoranalys","hp":4.0,"l":"G1F","tm":true},"TATA45":{"n":"Komplex analys","hp":6.0,"l":"G2F","tm":true},"TFYB06":{"n":"Elektromagnetism","hp":6.0,"l":"G2F","tm":false},"TAMS14":{"n":"Sannolikhetslära","hp":4.0,"l":"G1F","tm":true},"TAOP07":{"n":"Optimeringslära grundkurs","hp":6.0,"l":"G1F","tm":true},"TATA53":{"n":"Linjär algebra, överkurs","hp":6.0,"l":"G2F","tm":true},"TFYB15":{"n":"Elektromagnetiska vågor","hp":2.0,"l":"G2F","tm":false},"TAOP24":{"n":"Optimeringslära fortsättningskurs","hp":6.0,"l":"G2F","tm":true},"TSKS34":{"n":"Komplexa nätverk","hp":6.0,"l":"G2F","tm":false},"TPTE06":{"n":"Praktik","hp":6.0,"l":"G2F","tm":false},"TAMS24":{"n":"Statistisk teori, grk","hp":4.0,"l":"G2F","tm":true},"TATA77":{"n":"Fourieranalys","hp":6.0,"l":"G2F","tm":true},"TDDE71":{"n":"Programmering och datastrukturer","hp":8.0,"l":"G2F","tm":false},"TDDE69":{"n":"Maskininlärning, grundkurs","hp":6.0,"l":"G2F","tm":false},"TSBB36":{"n":"Multidimensionell signal- och bildanalys","hp":6.0,"l":"G2F","tm":false},"TATB12":{"n":"Teknisk matematik kandidatprojekt","hp":16.0,"l":"G2X","tm":true},"TSKS37":{"n":"Tekniska beräkningar i Python","hp":2.0,"l":"G1F","tm":false},"TSRT12":{"n":"Reglerteknik","hp":6.0,"l":"G2F","tm":false},"TINT01":{"n":"Introduktionskurs i interkulturell kompetens","hp":2.0,"l":"G1N","tm":false},"TANA31":{"n":"Beräkningsmetoder för ordinära och partiella differentialekvationer","hp":6.0,"l":"A1N","tm":true},"TEAE01":{"n":"Industriell ekonomi, grundkurs","hp":6.0,"l":"G1F","tm":false},"TEAE05":{"n":"Resursteori","hp":6.0,"l":"G1N","tm":false},"TGTU49":{"n":"Teknikhistoria","hp":6.0,"l":"G1F","tm":false},"TAMS32":{"n":"Stokastiska processer","hp":6.0,"l":"A1N","tm":true},"TAMS46":{"n":"Sannolikhetslära, fortsättningskurs","hp":6.0,"l":"A1N","tm":true},"TATA34":{"n":"Analys, överkurs","hp":6.0,"l":"G2F","tm":true},"TATA55":{"n":"Abstrakt algebra","hp":6.0,"l":"G2F","tm":true},"TATA74":{"n":"Differentialgeometri","hp":6.0,"l":"G2F","tm":true},"TATM85":{"n":"Funktionalanalys","hp":6.0,"l":"A1N","tm":true},"TATA71":{"n":"Ordinära differentialekvationer och dynamiska system","hp":6.0,"l":"G2F","tm":true},"TAOP34":{"n":"Optimering av stora system","hp":6.0,"l":"A1N","tm":true},"TAMS41":{"n":"Statistisk modellering med regressionsmetoder","hp":6.0,"l":"A1N","tm":true},"TAOP04":{"n":"Matematisk optimering","hp":6.0,"l":"A1N","tm":true},"TSRT92":{"n":"Modellering och inlärning för dynamiska system","hp":6.0,"l":"A1N","tm":false},"TSRT08":{"n":"Optimal styrning","hp":6.0,"l":"A1N","tm":false},"TSRT78":{"n":"Digital signalbehandling","hp":6.0,"l":"A1F","tm":false},"TBME04":{"n":"Anatomi och fysiologi","hp":6.0,"l":"G2F","tm":false},"TBMT42":{"n":"Systembiologi, digitala tvillingar och AI","hp":6.0,"l":"A1N","tm":false},"TBMT01":{"n":"Analys av bioelektriska signaler","hp":6.0,"l":"A1F","tm":false},"TMQU03":{"n":"Offensiv kvalitetsutveckling, gk","hp":6.0,"l":"G2F","tm":false},"TMQU12":{"n":"Lean Production","hp":6.0,"l":"A1N","tm":false},"TPPE17":{"n":"Corporate Finance","hp":6.0,"l":"G2F","tm":false},"TPPE29":{"n":"Finansiella marknader och instrument","hp":6.0,"l":"A1N","tm":false},"TFYA18":{"n":"Fysikens matematiska metoder","hp":6.0,"l":"A1N","tm":true},"TFYA40":{"n":"Analytisk mekanik","hp":6.0,"l":"A1N","tm":true},"TFFY54":{"n":"Kvantmekanik","hp":6.0,"l":"A1N","tm":false},"TFYB14":{"n":"Termodynamik och statistisk mekanik","hp":6.0,"l":"G2F","tm":false},"TSKS15":{"n":"Detektion och estimering av signaler","hp":6.0,"l":"A1N","tm":false},"TSBB19":{"n":"Maskininlärning för datorseende","hp":6.0,"l":"A1N","tm":false},"TSKS38":{"n":"Distribuerad informationsbehandling och maskininlärning","hp":6.0,"l":"A1N","tm":false},"TSBB08":{"n":"Digital bildbehandling grundkurs","hp":6.0,"l":"A1N","tm":false},"TSDT14":{"n":"Signalteori","hp":6.0,"l":"A1N","tm":false},"TSBB21":{"n":"Beräkningsfotografi","hp":6.0,"l":"A1F","tm":false},"TDDD38":{"n":"Avancerad programmering i C++","hp":6.0,"l":"A1N","tm":false},"TDDD72":{"n":"Logik","hp":6.0,"l":"G1F","tm":false},"TGT100":{"n":"Åtgärder för att möta den globala klimatförändringen","hp":6.0,"l":"G2F","tm":false},"THEN18":{"n":"Engelska","hp":6.0,"l":"G1N","tm":false},"TINT02":{"n":"Interkulturell kompetens och interkulturell kommunikation, fortsättningskurs","hp":6.0,"l":"G2F","tm":false},"TGTU84":{"n":"Mångfald och genus inom teknikutveckling","hp":6.0,"l":"G1F","tm":false},"TGTU98":{"n":"Matematik, vetenskap och samhälle","hp":6.0,"l":"G1F","tm":false},"TANA15":{"n":"Numerisk linjär algebra","hp":6.0,"l":"A1N","tm":true},"TATA27":{"n":"Partiella differentialekvationer","hp":6.0,"l":"A1N","tm":true},"TATA54":{"n":"Talteori","hp":6.0,"l":"G2F","tm":true},"TATA64":{"n":"Grafteori","hp":6.0,"l":"A1N","tm":true},"TATA66":{"n":"Fourier- och waveletanalys","hp":6.0,"l":"A1N","tm":true},"TAMS39":{"n":"Multivariat statistik","hp":6.0,"l":"A1N","tm":true},"TSRT09":{"n":"Reglerteori","hp":6.0,"l":"A1N","tm":false},"TSRT07":{"n":"Industriell reglerteknik","hp":6.0,"l":"A1N","tm":false},"TSRT14":{"n":"Sensorfusion","hp":6.0,"l":"A1N","tm":false},"TBMT09":{"n":"Fysiologiska tryck och flöden","hp":6.0,"l":"A1N","tm":false},"TBME08":{"n":"Biomedicinsk modellering och simulering","hp":6.0,"l":"A1N","tm":false},"TMQU31":{"n":"Statistisk kvalitetsstyrning","hp":6.0,"l":"A1N","tm":false},"TEIO13":{"n":"Ledarskap och industriellt förändringsarbete","hp":6.0,"l":"A1N","tm":false},"TMQU04":{"n":"Six Sigma Quality","hp":6.0,"l":"A1F","tm":false},"TMQU13":{"n":"Kundfokuserad produkt- och tjänsteutveckling","hp":6.0,"l":"A1N","tm":false},"TAMS29":{"n":"Stokastiska processer för finansmarknadsmodeller","hp":6.0,"l":"A1F","tm":true},"TPPE32":{"n":"Finansiell riskhantering","hp":6.0,"l":"A1F","tm":false},"TPPE33":{"n":"Portföljförvaltning","hp":6.0,"l":"A1N","tm":false},"TATA75":{"n":"Relativitetsteori","hp":6.0,"l":"A1F","tm":true},"TFYA17":{"n":"Projektlaborationer i fysik","hp":6.0,"l":"A1F","tm":false},"TDDE70":{"n":"Djup maskininlärning","hp":6.0,"l":"A1F","tm":false},"TDDE07":{"n":"Bayesianska metoder","hp":6.0,"l":"A1F","tm":false},"TDDE09":{"n":"Språkteknologi","hp":6.0,"l":"A1F","tm":false},"TSBB34":{"n":"Datorseende för videoanalys","hp":6.0,"l":"A1N","tm":false},"TSBB33":{"n":"3D-datorseende","hp":6.0,"l":"A1N","tm":false},"TDDD20":{"n":"Konstruktion och analys av algoritmer","hp":6.0,"l":"A1N","tm":false},"TDDD95":{"n":"Algoritmisk problemlösning","hp":6.0,"l":"A1F","tm":false},"TDDE91":{"n":"Säkerhet och integritet för maskininlärning","hp":6.0,"l":"A1N","tm":false},"TAMS48":{"n":"Matematisk modellering för hållbar utveckling","hp":6.0,"l":"A1N","tm":true},"TATA78":{"n":"Komplex analys fk","hp":6.0,"l":"A1N","tm":true},"TATB10":{"n":"Matrisanalys","hp":6.0,"l":"A1N","tm":true},"TATM38":{"n":"Matematiska modeller i biologi","hp":6.0,"l":"A1N","tm":true},"TAMS43":{"n":"Sannolikhetsteori och bayesianska nätverk","hp":6.0,"l":"A1N","tm":true},"TAMS17":{"n":"Statistisk teori, fortsättningskurs","hp":6.0,"l":"A1N","tm":true},"TAOP18":{"n":"Optimering av försörjningskedjor","hp":6.0,"l":"A1F","tm":true},"TSFS12":{"n":"Autonoma farkoster - planering, reglering och lärande system","hp":6.0,"l":"A1N","tm":false},"TATA85":{"n":"Projektkurs i tillämpad matematik","hp":12.0,"l":"A1F","tm":true},"TSRT28":{"n":"Projektkurs i reglerteknik","hp":12.0,"l":"A1F","tm":false},"TBMT39":{"n":"Projektkurs i medicinsk teknik","hp":12.0,"l":"A1F","tm":false},"TBMT57":{"n":"Biomedicinsk optik","hp":6.0,"l":"A1F","tm":false},"TMQU47":{"n":"Kvalitetsutveckling och robust konstruktion","hp":6.0,"l":"A1N","tm":false},"TPPE61":{"n":"Finansiell optimering","hp":6.0,"l":"A1F","tm":true},"TPPE53":{"n":"Finansiell värderingsmetodik","hp":6.0,"l":"A1F","tm":false},"TPPE66":{"n":"Företagsvärdering","hp":6.0,"l":"A1F","tm":false},"TFYB13":{"n":"Projektkurs i teknisk fysik","hp":12.0,"l":"A1F","tm":false},"TFYA36":{"n":"Kaos och icke-linjära fenomen","hp":6.0,"l":"A1N","tm":true},"TSKS25":{"n":"Projektkurs i signalbehandling, kommunikation och nätverk","hp":12.0,"l":"A1F","tm":false},"TDDE15":{"n":"Avancerad maskininlärning","hp":6.0,"l":"A1F","tm":false},"TSBB22":{"n":"Projektkurs i bilder och grafik","hp":12.0,"l":"A1F","tm":false},"TDDD56":{"n":"Multicore- och GPU-Programmering","hp":6.0,"l":"A1N","tm":false},"TDDD08":{"n":"Logikprogrammering","hp":6.0,"l":"A1N","tm":false},"TQXX33":{"n":"Examensarbete","hp":30.0,"l":"A2E","tm":false}},"groups":{"TIAU":{"name":"Autonoma system","kind":"spec","c":{"TSRT92":"v","TSRT08":"v","TSRT78":"v","TSRT09":"o","TSRT07":"v","TSRT14":"v","TSFS12":"o","TATA85":"o/v","TSRT28":"o/v"}},"TMBA":{"name":"Beräkningsmatematik och analys","kind":"profile","c":{"TAMS32":"v","TAMS46":"v","TATA34":"v","TATA55":"v","TATA74":"v","TATM85":"v","TATA71":"v","TANA15":"v","TATA27":"v","TATA54":"v","TATA64":"v","TATA66":"v","TAMS48":"o","TATA78":"v","TATB10":"v","TATM38":"v"}},"TIBM":{"name":"Biomedicinsk modellering och simulering","kind":"spec","c":{"TBME04":"o","TBMT42":"o","TBMT01":"v","TBMT09":"o","TBME08":"o","TBMT39":"o","TBMT57":"v"}},"TIKV":{"name":"Datadriven verksamhetsutveckling","kind":"spec","c":{"TMQU03":"o","TMQU12":"o","TMQU31":"o","TEIO13":"v","TMQU04":"o","TMQU13":"v","TATA85":"o","TMQU47":"v"}},"TIFM":{"name":"Finansiell matematik","kind":"spec","c":{"TEAE01":"o","TPPE17":"o","TPPE29":"v","TAMS29":"v","TPPE32":"v","TPPE33":"v","TATA85":"o","TPPE61":"o","TPPE53":"v","TPPE66":"v"}},"TIFY":{"name":"Fysik","kind":"spec","c":{"TFYA18":"o","TFYA40":"o","TFFY54":"v","TFYB14":"v","TATA75":"v","TFYA17":"v","TFYB13":"o","TFYA36":"v"}},"TIMI":{"name":"Maskininlärning och datadriven analys","kind":"spec","c":{"TSKS15":"o","TSBB19":"v","TSRT92":"v","TSKS38":"o","TDDE70":"o","TDDE07":"o","TDDE09":"v","TATA85":"o/v","TBMT39":"o/v","TSKS25":"o/v","TSRT28":"o/v","TDDE15":"v"}},"TMSO":{"name":"Matematisk statistik och optimeringslära","kind":"profile","c":{"TAMS32":"v","TAMS46":"v","TAOP34":"v","TAMS41":"v","TAOP04":"v","TAMS39":"v","TANA15":"v","TATA64":"v","TAMS48":"o","TAMS43":"v","TAMS17":"v","TAOP18":"v"}},"TIMD":{"name":"Matematiskt datorseende","kind":"spec","c":{"TSBB08":"o","TSDT14":"o","TSBB21":"o","TSRT78":"v","TDDE70":"v","TSBB34":"v","TSBB33":"o","TSBB22":"o","TDDD56":"v"}},"TITD":{"name":"Teoretisk datalogi","kind":"spec","c":{"TDDD38":"v","TDDD72":"o","TDDD20":"o","TDDD95":"v","TATA85":"o","TDDD08":"v"}}},"general":{"TEAE01":"o/v","TINT01":"v","TEAE05":"o/v","TGTU49":"v","TGT100":"v","THEN18":"v","TINT02":"v","TGTU84":"v","TGTU98":"v","TDDE91":"v","TQXX33":"o"},"early":{"TATB01":"o","TANA82":"o","TATA24":"o","TATB05":"o","TATA40":"f","TATA41":"o","TATA42":"o","TDDE44":"o","TFYB04":"o","TBMT32":"v","TFFM12":"v","TGTU96":"f","TATA43":"o","TANA21":"o","TATA32":"o","TATA44":"o","TATA45":"o","TFYB06":"o","TAMS14":"o","TAOP07":"o","TATA53":"o","TFYB15":"o","TAOP24":"o","TSKS34":"o","TPTE06":"v","TAMS24":"o","TATA77":"o","TDDE71":"o","TDDE69":"o","TSBB36":"o","TATB12":"o","TSKS37":"o","TSRT12":"o","TINT01":"v","TANA31":"o"}},{"id":"6330","label":"HT 2026","rules":{"profileHp":30,"profileAdvCourses":4,"specHp":36,"outsideMax":18,"businessText":["TEAE01","TEAE05"]},"business":["TEAE01","TEAE05"],"courses":{"TATB01":{"n":"Matematisk grundkurs","hp":6.0,"l":"G1N","tm":true},"TANA82":{"n":"Ingenjörsprojekt","hp":6.0,"l":"G1N","tm":true},"TATA24":{"n":"Linjär algebra","hp":8.0,"l":"G1N","tm":true},"TATB05":{"n":"Matematisk modellering","hp":4.0,"l":"G1N","tm":true},"TATA40":{"n":"Matematiska utblickar","hp":1.0,"l":"G1N","tm":true},"TATA41":{"n":"Envariabelanalys 1","hp":6.0,"l":"G1F","tm":true},"TATA42":{"n":"Envariabelanalys 2","hp":6.0,"l":"G1F","tm":true},"TDDE44":{"n":"Programmering, grundkurs","hp":8.0,"l":"G1N","tm":false},"TFYB04":{"n":"Mekanik och grundläggande fysikaliska begrepp","hp":8.0,"l":"G1F","tm":false},"TBMT32":{"n":"Medicintekniska utblickar","hp":2.0,"l":"G1N","tm":false},"TFFM12":{"n":"Fysikaliska utblickar","hp":2.0,"l":"G1N","tm":false},"TGTU96":{"n":"Hållbar studiesituation","hp":2.0,"l":"G1N","tm":false},"TATA43":{"n":"Flervariabelanalys","hp":8.0,"l":"G1F","tm":true},"TANA21":{"n":"Beräkningsmatematik","hp":6.0,"l":"G1F","tm":true},"TATA32":{"n":"Diskret matematik","hp":8.0,"l":"G1N","tm":true},"TATA44":{"n":"Vektoranalys","hp":4.0,"l":"G1F","tm":true},"TATA45":{"n":"Komplex analys","hp":6.0,"l":"G2F","tm":true},"TFYB06":{"n":"Elektromagnetism","hp":6.0,"l":"G2F","tm":false},"TAMS14":{"n":"Sannolikhetslära","hp":4.0,"l":"G1F","tm":true},"TAOP07":{"n":"Optimeringslära grundkurs","hp":6.0,"l":"G1F","tm":true},"TATA53":{"n":"Linjär algebra, överkurs","hp":6.0,"l":"G2F","tm":true},"TFYB15":{"n":"Elektromagnetiska vågor","hp":2.0,"l":"G2F","tm":false},"TAOP24":{"n":"Optimeringslära fortsättningskurs","hp":6.0,"l":"G2F","tm":true},"TSKS34":{"n":"Komplexa nätverk","hp":6.0,"l":"G2F","tm":false},"TPTE06":{"n":"Praktik","hp":6.0,"l":"G2F","tm":false},"TAMS24":{"n":"Statistisk teori, grk","hp":4.0,"l":"G2F","tm":true},"TATA77":{"n":"Fourieranalys","hp":6.0,"l":"G2F","tm":true},"TDDE71":{"n":"Programmering och datastrukturer","hp":8.0,"l":"G2F","tm":false},"TDDE69":{"n":"Maskininlärning, grundkurs","hp":6.0,"l":"G2F","tm":false},"TSBB36":{"n":"Multidimensionell signal- och bildanalys","hp":6.0,"l":"G2F","tm":false},"TATB12":{"n":"Teknisk matematik kandidatprojekt","hp":16.0,"l":"G2X","tm":true},"TSKS37":{"n":"Tekniska beräkningar i Python","hp":2.0,"l":"G1F","tm":false},"TSRT12":{"n":"Reglerteknik","hp":6.0,"l":"G2F","tm":false},"TINT01":{"n":"Introduktionskurs i interkulturell kompetens","hp":2.0,"l":"G1N","tm":false},"TANA31":{"n":"Beräkningsmetoder för ordinära och partiella differentialekvationer","hp":6.0,"l":"A1N","tm":true},"TEAE01":{"n":"Industriell ekonomi, grundkurs","hp":6.0,"l":"G1F","tm":false},"TEAE05":{"n":"Resursteori","hp":6.0,"l":"G1N","tm":false},"TGTU49":{"n":"Teknikhistoria","hp":6.0,"l":"G1F","tm":false},"TAMS32":{"n":"Stokastiska processer","hp":6.0,"l":"A1N","tm":true},"TAMS46":{"n":"Sannolikhetslära, fortsättningskurs","hp":6.0,"l":"A1N","tm":true},"TATA34":{"n":"Analys, överkurs","hp":6.0,"l":"G2F","tm":true},"TATA55":{"n":"Abstrakt algebra","hp":6.0,"l":"G2F","tm":true},"TATA74":{"n":"Differentialgeometri","hp":6.0,"l":"G2F","tm":true},"TATM85":{"n":"Funktionalanalys","hp":6.0,"l":"A1N","tm":true},"TATA71":{"n":"Ordinära differentialekvationer och dynamiska system","hp":6.0,"l":"G2F","tm":true},"TAOP34":{"n":"Optimering av stora system","hp":6.0,"l":"A1N","tm":true},"TAMS41":{"n":"Statistisk modellering med regressionsmetoder","hp":6.0,"l":"A1N","tm":true},"TAOP04":{"n":"Matematisk optimering","hp":6.0,"l":"A1N","tm":true},"TSRT92":{"n":"Modellering och inlärning för dynamiska system","hp":6.0,"l":"A1N","tm":false},"TSRT08":{"n":"Optimal styrning","hp":6.0,"l":"A1N","tm":false},"TSRT78":{"n":"Digital signalbehandling","hp":6.0,"l":"A1F","tm":false},"TBME04":{"n":"Anatomi och fysiologi","hp":6.0,"l":"G2F","tm":false},"TBMT42":{"n":"Systembiologi, digitala tvillingar och AI","hp":6.0,"l":"A1N","tm":false},"TBMT01":{"n":"Analys av bioelektriska signaler","hp":6.0,"l":"A1F","tm":false},"TMQU03":{"n":"Offensiv kvalitetsutveckling, gk","hp":6.0,"l":"G2F","tm":false},"TMQU12":{"n":"Lean Production","hp":6.0,"l":"A1N","tm":false},"TPPE17":{"n":"Corporate Finance","hp":6.0,"l":"G2F","tm":false},"TPPE29":{"n":"Finansiella marknader och instrument","hp":6.0,"l":"A1N","tm":false},"TFYA18":{"n":"Fysikens matematiska metoder","hp":6.0,"l":"A1N","tm":true},"TFYA40":{"n":"Analytisk mekanik","hp":6.0,"l":"A1N","tm":true},"TFFY54":{"n":"Kvantmekanik","hp":6.0,"l":"A1N","tm":false},"TFYB14":{"n":"Termodynamik och statistisk mekanik","hp":6.0,"l":"G2F","tm":false},"TSKS15":{"n":"Detektion och estimering av signaler","hp":6.0,"l":"A1N","tm":false},"TSBB19":{"n":"Maskininlärning för datorseende","hp":6.0,"l":"A1N","tm":false},"TSKS38":{"n":"Distribuerad informationsbehandling och maskininlärning","hp":6.0,"l":"A1N","tm":false},"TSBB08":{"n":"Digital bildbehandling grundkurs","hp":6.0,"l":"A1N","tm":false},"TSDT14":{"n":"Signalteori","hp":6.0,"l":"A1N","tm":false},"TSBB21":{"n":"Beräkningsfotografi","hp":6.0,"l":"A1F","tm":false},"TDDD38":{"n":"Avancerad programmering i C++","hp":6.0,"l":"A1N","tm":false},"TDDD72":{"n":"Logik","hp":6.0,"l":"G1F","tm":false},"TGT100":{"n":"Åtgärder för att möta den globala klimatförändringen","hp":6.0,"l":"G2F","tm":false},"THEN18":{"n":"Engelska","hp":6.0,"l":"G1N","tm":false},"TINT02":{"n":"Interkulturell kompetens och interkulturell kommunikation, fortsättningskurs","hp":6.0,"l":"G2F","tm":false},"TGTU84":{"n":"Mångfald och genus inom teknikutveckling","hp":6.0,"l":"G1F","tm":false},"TGTU98":{"n":"Matematik, vetenskap och samhälle","hp":6.0,"l":"G1F","tm":false},"TANA15":{"n":"Numerisk linjär algebra","hp":6.0,"l":"A1N","tm":true},"TATA27":{"n":"Partiella differentialekvationer","hp":6.0,"l":"A1N","tm":true},"TATA54":{"n":"Talteori","hp":6.0,"l":"G2F","tm":true},"TATA64":{"n":"Grafteori","hp":6.0,"l":"A1N","tm":true},"TATA66":{"n":"Fourier- och waveletanalys","hp":6.0,"l":"A1N","tm":true},"TAMS39":{"n":"Multivariat statistik","hp":6.0,"l":"A1N","tm":true},"TSRT09":{"n":"Reglerteori","hp":6.0,"l":"A1N","tm":false},"TSRT07":{"n":"Industriell reglerteknik","hp":6.0,"l":"A1N","tm":false},"TSRT14":{"n":"Sensorfusion","hp":6.0,"l":"A1N","tm":false},"TBMT09":{"n":"Fysiologiska tryck och flöden","hp":6.0,"l":"A1N","tm":false},"TBME08":{"n":"Biomedicinsk modellering och simulering","hp":6.0,"l":"A1N","tm":false},"TMQU31":{"n":"Statistisk kvalitetsstyrning","hp":6.0,"l":"A1N","tm":false},"TEIO13":{"n":"Ledarskap och industriellt förändringsarbete","hp":6.0,"l":"A1N","tm":false},"TMQU04":{"n":"Six Sigma Quality","hp":6.0,"l":"A1F","tm":false},"TMQU13":{"n":"Kundfokuserad produkt- och tjänsteutveckling","hp":6.0,"l":"A1N","tm":false},"TAMS29":{"n":"Stokastiska processer för finansmarknadsmodeller","hp":6.0,"l":"A1F","tm":true},"TPPE32":{"n":"Finansiell riskhantering","hp":6.0,"l":"A1F","tm":false},"TPPE33":{"n":"Portföljförvaltning","hp":6.0,"l":"A1N","tm":false},"TATA75":{"n":"Relativitetsteori","hp":6.0,"l":"A1F","tm":true},"TFYA17":{"n":"Projektlaborationer i fysik","hp":6.0,"l":"A1F","tm":false},"TDDE70":{"n":"Djup maskininlärning","hp":6.0,"l":"A1F","tm":false},"TDDE07":{"n":"Bayesianska metoder","hp":6.0,"l":"A1F","tm":false},"TDDE09":{"n":"Språkteknologi","hp":6.0,"l":"A1F","tm":false},"TSBB34":{"n":"Datorseende för videoanalys","hp":6.0,"l":"A1N","tm":false},"TSBB33":{"n":"3D-datorseende","hp":6.0,"l":"A1N","tm":false},"TDDD20":{"n":"Konstruktion och analys av algoritmer","hp":6.0,"l":"A1N","tm":false},"TDDD95":{"n":"Algoritmisk problemlösning","hp":6.0,"l":"A1F","tm":false},"TDDE91":{"n":"Säkerhet och integritet för maskininlärning","hp":6.0,"l":"A1N","tm":false},"TAMS48":{"n":"Matematisk modellering för hållbar utveckling","hp":6.0,"l":"A1N","tm":true},"TATA78":{"n":"Komplex analys fk","hp":6.0,"l":"A1N","tm":true},"TATB10":{"n":"Matrisanalys","hp":6.0,"l":"A1N","tm":true},"TATM38":{"n":"Matematiska modeller i biologi","hp":6.0,"l":"A1N","tm":true},"TAMS43":{"n":"Sannolikhetsteori och bayesianska nätverk","hp":6.0,"l":"A1N","tm":true},"TAMS17":{"n":"Statistisk teori, fortsättningskurs","hp":6.0,"l":"A1N","tm":true},"TAOP18":{"n":"Optimering av försörjningskedjor","hp":6.0,"l":"A1F","tm":true},"TSFS12":{"n":"Autonoma farkoster - planering, reglering och lärande system","hp":6.0,"l":"A1N","tm":false},"TATA85":{"n":"Projektkurs i tillämpad matematik","hp":12.0,"l":"A1F","tm":true},"TSRT28":{"n":"Projektkurs i reglerteknik","hp":12.0,"l":"A1F","tm":false},"TBMT39":{"n":"Projektkurs i medicinsk teknik","hp":12.0,"l":"A1F","tm":false},"TBMT57":{"n":"Biomedicinsk optik","hp":6.0,"l":"A1F","tm":false},"TMQU47":{"n":"Kvalitetsutveckling och robust konstruktion","hp":6.0,"l":"A1N","tm":false},"TPPE61":{"n":"Finansiell optimering","hp":6.0,"l":"A1F","tm":true},"TPPE53":{"n":"Finansiell värderingsmetodik","hp":6.0,"l":"A1F","tm":false},"TPPE66":{"n":"Företagsvärdering","hp":6.0,"l":"A1F","tm":false},"TFYB13":{"n":"Projektkurs i teknisk fysik","hp":12.0,"l":"A1F","tm":false},"TFYA36":{"n":"Kaos och icke-linjära fenomen","hp":6.0,"l":"A1N","tm":true},"TSKS25":{"n":"Projektkurs i signalbehandling, kommunikation och nätverk","hp":12.0,"l":"A1F","tm":false},"TDDE15":{"n":"Avancerad maskininlärning","hp":6.0,"l":"A1F","tm":false},"TSBB22":{"n":"Projektkurs i bilder och grafik","hp":12.0,"l":"A1F","tm":false},"TDDD56":{"n":"Multicore- och GPU-Programmering","hp":6.0,"l":"A1N","tm":false},"TDDD08":{"n":"Logikprogrammering","hp":6.0,"l":"A1N","tm":false},"TQXX33":{"n":"Examensarbete","hp":30.0,"l":"A2E","tm":false}},"groups":{"TIAU":{"name":"Autonoma system","kind":"spec","c":{"TSRT92":"v","TSRT08":"v","TSRT78":"v","TSRT09":"o","TSRT07":"v","TSRT14":"v","TSFS12":"o","TATA85":"o/v","TSRT28":"o/v"}},"TMBA":{"name":"Beräkningsmatematik och analys","kind":"profile","c":{"TAMS32":"v","TAMS46":"v","TATA34":"v","TATA55":"v","TATA74":"v","TATM85":"v","TATA71":"v","TANA15":"v","TATA27":"v","TATA54":"v","TATA64":"v","TATA66":"v","TAMS48":"o","TATA78":"v","TATB10":"v","TATM38":"v"}},"TIBM":{"name":"Biomedicinsk modellering och simulering","kind":"spec","c":{"TBME04":"o","TBMT42":"o","TBMT01":"v","TBMT09":"o","TBME08":"o","TBMT39":"o","TBMT57":"v"}},"TIKV":{"name":"Datadriven verksamhetsutveckling","kind":"spec","c":{"TMQU03":"o","TMQU12":"o","TMQU31":"o","TEIO13":"v","TMQU04":"o","TMQU13":"v","TATA85":"o","TMQU47":"v"}},"TIFM":{"name":"Finansiell matematik","kind":"spec","c":{"TEAE01":"o","TPPE17":"o","TPPE29":"v","TAMS29":"v","TPPE32":"v","TPPE33":"v","TATA85":"o","TPPE61":"o","TPPE53":"v","TPPE66":"v"}},"TIFY":{"name":"Fysik","kind":"spec","c":{"TFYA18":"o","TFYA40":"o","TFFY54":"v","TFYB14":"v","TATA75":"v","TFYA17":"v","TFYB13":"o","TFYA36":"v"}},"TIMI":{"name":"Maskininlärning och datadriven analys","kind":"spec","c":{"TSKS15":"o","TSBB19":"v","TSRT92":"v","TSKS38":"o","TDDE70":"o","TDDE07":"o","TDDE09":"v","TATA85":"o/v","TBMT39":"o/v","TSKS25":"o/v","TSRT28":"o/v","TDDE15":"v"}},"TMSO":{"name":"Matematisk statistik och optimeringslära","kind":"profile","c":{"TAMS32":"v","TAMS46":"v","TAOP34":"v","TAMS41":"v","TAOP04":"v","TAMS39":"v","TANA15":"v","TATA64":"v","TAMS48":"o","TAMS43":"v","TAMS17":"v","TAOP18":"v"}},"TIMD":{"name":"Matematiskt datorseende","kind":"spec","c":{"TSBB08":"o","TSDT14":"o","TSBB21":"o","TSRT78":"v","TDDE70":"v","TSBB34":"v","TSBB33":"o","TSBB22":"o","TDDD56":"v"}},"TITD":{"name":"Teoretisk datalogi","kind":"spec","c":{"TDDD38":"v","TDDD72":"o","TDDD20":"o","TDDD95":"v","TATA85":"o","TDDD08":"v"}}},"general":{"TEAE01":"o/v","TINT01":"v","TEAE05":"o/v","TGTU49":"v","TGT100":"v","THEN18":"v","TINT02":"v","TGTU84":"v","TGTU98":"v","TDDE91":"v","TQXX33":"o"},"early":{"TATB01":"o","TANA82":"o","TATA24":"o","TATB05":"o","TATA40":"f","TATA41":"o","TATA42":"o","TDDE44":"o","TFYB04":"o","TBMT32":"v","TFFM12":"v","TGTU96":"f","TATA43":"o","TANA21":"o","TATA32":"o","TATA44":"o","TATA45":"o","TFYB06":"o","TAMS14":"o","TAOP07":"o","TATA53":"o","TFYB15":"o","TAOP24":"o","TSKS34":"o","TPTE06":"v","TAMS24":"o","TATA77":"o","TDDE71":"o","TDDE69":"o","TSBB36":"o","TATB12":"o","TSKS37":"o","TSRT12":"o","TINT01":"v","TANA31":"o"}}];
+// Degree requirement checks for 6CTMA, semesters 7–9.
+// Years 1–3, the thesis (30 hp) and the language requirement are assumed done.
+
+// 300 hp = 180 (years 1–3) + 90 (semesters 7–9) + 30 (thesis).
+const TOTAL_HP = 90;
+// 90 hp advanced level in total, of which the thesis is 30.
+const ADVANCED_HP = 60;
+// 30 hp advanced level in the main field (Tillämpad matematik).
+const MAIN_FIELD_HP = 30;
+const DEFAULT_OUTSIDE_HP = 6;
+
+function parseInput(text) {
+  const tokens = text.toUpperCase().split(/[\s,;]+/).filter(Boolean);
+  const entries = [], invalid = [], duplicates = [];
+  const seen = new Set();
+  for (const tok of tokens) {
+    const m = tok.match(/^([A-Z0-9]{4,8})(?::(\d+(?:[.,]\d+)?))?(?::(A))?$/);
+    if (!m) { invalid.push(tok); continue; }
+    if (seen.has(m[1])) { duplicates.push(m[1]); continue; }
+    seen.add(m[1]);
+    entries.push({ code: m[1], hp: m[2] ? parseFloat(m[2].replace(',', '.')) : null, adv: !!m[3] });
+  }
+  return { entries, invalid, duplicates };
+}
+
+const sum = (list) => list.reduce((s, c) => s + c.hp, 0);
+const fmt = (hp) => (Math.round(hp * 10) / 10).toString().replace('.', ',');
+const isAdv = (level) => /^A/.test(level || '');
+
+function classify(cohort, profile, spec, entry) {
+  const info = cohort.courses[entry.code];
+  const inProfile = entry.code in profile.c;
+  const inSpec = entry.code in spec.c;
+  const listings = [cohort.general[entry.code], ...Object.values(cohort.groups).map((g) => g.c[entry.code])]
+    .filter(Boolean);
+  const base = { code: entry.code, name: info ? info.n : null, hp: info ? info.hp : entry.hp, level: info ? info.l : null,
+    tm: info ? info.tm : false, inProfile, inSpec, counted: true, role: null, note: '' };
+
+  if (info && (info.l === 'A2E' || /^TQXX/.test(entry.code))) {
+    return { ...base, counted: false, role: 'excluded', note: 'Thesis. Assumed done and not counted here.' };
+  }
+  if (listings.length) {
+    if (listings.every((v) => v === 'f')) {
+      return { ...base, counted: false, role: 'excluded', note: 'Voluntary course (F). Does not count toward the degree.' };
+    }
+    return { ...base, role: inProfile ? 'profile' : inSpec ? 'spec' : 'elective' };
+  }
+  if (info) {
+    const vof = cohort.early[entry.code];
+    if (vof === 'o') return { ...base, counted: false, role: 'excluded', note: 'Mandatory year 1–3 course. Already part of the assumed 180 hp.' };
+    if (vof === 'f') return { ...base, counted: false, role: 'excluded', note: 'Voluntary course (F). Does not count toward the degree.' };
+    return { ...base, role: 'elective', note: 'Year 1–3 elective.' };
+  }
+  return { ...base, hp: entry.hp ?? DEFAULT_OUTSIDE_HP, level: entry.adv ? 'A' : null, role: 'outside',
+    hpAssumed: entry.hp == null,
+    note: entry.hp == null ? `Not in the program plan. Credits unknown, assumed ${DEFAULT_OUTSIDE_HP} hp.` : 'Not in the program plan.' };
+}
+
+function validate(cohort, profileCode, specCode, text) {
+  const profile = cohort.groups[profileCode];
+  const spec = cohort.groups[specCode];
+  const rules = cohort.rules;
+  const { entries, invalid, duplicates } = parseInput(text);
+  const courses = entries.map((e) => classify(cohort, profile, spec, e));
+  const counted = courses.filter((c) => c.counted);
+  const taken = new Set(counted.map((c) => c.code));
+  const reqs = [];
+  const req = (id, title, ok, detail, progress) => reqs.push({ id, title, ok, detail, progress });
+  const missingOf = (codes) => codes.filter((c) => !taken.has(c));
+  const label = (code) => `${code}${cohort.courses[code] ? ' ' + cohort.courses[code].n : ''}`;
+
+  // Master profile
+  const profMand = Object.keys(profile.c).filter((c) => profile.c[c] === 'o');
+  const profMissing = missingOf(profMand);
+  req('profile-mandatory', 'Mandatory profile courses', profMissing.length === 0,
+    profMand.length === 0 ? 'This profile has no mandatory courses.'
+      : profMissing.length ? `Missing: ${profMissing.map(label).join(', ')}.` : `Included: ${profMand.map(label).join(', ')}.`);
+
+  const profCourses = counted.filter((c) => c.inProfile);
+  const profHp = sum(profCourses);
+  req('profile-hp', `At least ${rules.profileHp} hp from the profile`, profHp >= rules.profileHp,
+    `${fmt(profHp)} of ${rules.profileHp} hp from ${profCourses.length} profile course${profCourses.length === 1 ? '' : 's'}.`,
+    { value: profHp, target: rules.profileHp });
+
+  const profAdv = profCourses.filter((c) => isAdv(c.level));
+  req('profile-adv', `At least ${rules.profileAdvCourses} advanced-level profile courses`, profAdv.length >= rules.profileAdvCourses,
+    `${profAdv.length} of ${rules.profileAdvCourses}${profAdv.length ? ': ' + profAdv.map((c) => c.code).join(', ') : ''}.`,
+    { value: profAdv.length, target: rules.profileAdvCourses, unit: 'courses' });
+
+  // Technical specialization
+  const specMand = Object.keys(spec.c).filter((c) => spec.c[c] === 'o');
+  const specChoice = Object.keys(spec.c).filter((c) => spec.c[c] === 'o/v');
+  const specMissing = missingOf(specMand);
+  const choiceOk = specChoice.length === 0 || specChoice.some((c) => taken.has(c));
+  const specParts = [];
+  if (specMissing.length) specParts.push(`Missing: ${specMissing.map(label).join(', ')}.`);
+  if (!choiceOk) specParts.push(`Pick one of: ${specChoice.map(label).join(', ')}.`);
+  if (!specParts.length) specParts.push(`Included: ${[...specMand, ...specChoice.filter((c) => taken.has(c))].map(label).join(', ')}.`);
+  req('spec-mandatory', 'Mandatory specialization courses', specMissing.length === 0 && choiceOk, specParts.join(' '));
+
+  const specCourses = counted.filter((c) => c.inSpec);
+  const specHp = sum(specCourses);
+  req('spec-hp', `At least ${rules.specHp} hp from the specialization`, specHp >= rules.specHp,
+    `${fmt(specHp)} of ${rules.specHp} hp from ${specCourses.length} specialization course${specCourses.length === 1 ? '' : 's'}.`,
+    { value: specHp, target: rules.specHp });
+
+  // Business course: a specialization may make one of the alternatives mandatory (Finansiell matematik: TEAE01).
+  const forced = cohort.business.filter((c) => spec.c[c] === 'o');
+  const bizOptions = forced.length ? forced : cohort.business;
+  const bizTaken = bizOptions.filter((c) => taken.has(c));
+  let bizDetail = bizTaken.length ? `Included: ${bizTaken.map(label).join(', ')}.`
+    : `Add ${bizOptions.length === 1 ? '' : 'one of '}${bizOptions.map(label).join(forced.length ? ', ' : ' or ')}.`;
+  if (forced.length) bizDetail += ` ${spec.name} requires ${forced.join(', ')}.`;
+  else if (rules.businessText.join() !== cohort.business.join()) {
+    bizDetail += ` The plan text lists ${rules.businessText.join(' and ')}, but the course table also lists ${cohort.business.filter((c) => !rules.businessText.includes(c)).join(', ')}. All are accepted here. Confirm with your study counsellor.`;
+  }
+  req('business', 'Business course (företags- och affärsmässiga villkor)', bizTaken.length > 0, bizDetail);
+
+  // Courses outside the program plan
+  const outside = counted.filter((c) => c.role === 'outside');
+  const outsideHp = sum(outside);
+  req('outside', `At most ${rules.outsideMax} hp outside the program plan`, outsideHp <= rules.outsideMax,
+    outside.length ? `${fmt(outsideHp)} hp: ${outside.map((c) => c.code).join(', ')}.${outsideHp > rules.outsideMax ? ` Only ${rules.outsideMax} hp can count.` : ''}`
+      : 'No courses outside the program plan.',
+    { value: outsideHp, target: rules.outsideMax, max: true });
+
+  // Credit totals. Outside-plan credits above the cap do not count.
+  const totalHp = sum(counted) - Math.max(0, outsideHp - rules.outsideMax);
+  req('total', `At least ${TOTAL_HP} hp in semesters 7–9`, totalHp >= TOTAL_HP,
+    `${fmt(totalHp)} of ${TOTAL_HP} hp counted.`, { value: totalHp, target: TOTAL_HP });
+
+  // Mandatory advanced-level courses from years 1–3 (TANA31) count toward the advanced totals.
+  const earlyAdv = Object.keys(cohort.early)
+    .filter((c) => cohort.early[c] === 'o' && isAdv(cohort.courses[c].l))
+    .map((c) => ({ code: c, ...cohort.courses[c] }));
+  const advHp = sum(counted.filter((c) => isAdv(c.level))) + sum(earlyAdv);
+  const earlyNote = earlyAdv.length ? ` Includes ${earlyAdv.map((c) => `${c.code} (${fmt(c.hp)} hp)`).join(', ')} from year 3.` : '';
+  req('advanced', `At least ${ADVANCED_HP} hp at advanced level`, advHp >= ADVANCED_HP,
+    `${fmt(advHp)} of ${ADVANCED_HP} hp, not counting the thesis.${earlyNote}`, { value: advHp, target: ADVANCED_HP });
+
+  const earlyTm = earlyAdv.filter((c) => c.tm);
+  const tmHp = sum(counted.filter((c) => isAdv(c.level) && c.tm)) + sum(earlyTm);
+  req('main-field', `At least ${MAIN_FIELD_HP} hp advanced in Tillämpad matematik`, tmHp >= MAIN_FIELD_HP,
+    `${fmt(tmHp)} of ${MAIN_FIELD_HP} hp.${earlyTm.length ? ` Includes ${earlyTm.map((c) => c.code).join(', ')} from year 3.` : ''}`,
+    { value: tmHp, target: MAIN_FIELD_HP });
+
+  const warnings = [];
+  if (invalid.length) warnings.push(`Couldn't read ${invalid.map((t) => `"${t}"`).join(', ')}. Use course codes like TAMS46, optionally with credits: ABC123:7.5.`);
+  if (duplicates.length) warnings.push(`Listed more than once: ${[...new Set(duplicates)].join(', ')}. Counted once.`);
+  const both = counted.filter((c) => c.inProfile && c.inSpec);
+  if (both.length) warnings.push(`${both.map((c) => c.code).join(', ')} is listed in both the profile and the specialization and is counted toward both. Check whether that is allowed.`);
+  const assumed = outside.filter((c) => c.hpAssumed);
+  if (assumed.length) warnings.push(`Credits assumed to be ${DEFAULT_OUTSIDE_HP} hp for ${assumed.map((c) => c.code).join(', ')}. Write e.g. ${assumed[0].code}:7.5 to set them.`);
+  if (outside.some((c) => !isAdv(c.level))) warnings.push('Courses outside the program plan count as basic level unless you add :A, e.g. ABC123:7.5:A.');
+
+  return { courses, reqs, warnings, totals: { totalHp, profHp, specHp, advHp, tmHp } };
+}
+
+if (typeof module !== 'undefined') module.exports = { validate, parseInput };
+
+
+const EXAMPLE = { cohort: '5270', profile: 'TMSO', spec: 'TIMI',
+  text: 'TAMS48, TAMS46, TAMS32, TAOP34, TAMS41, TAMS39,\nTSKS15, TSKS38, TDDE07, TDDE70, TATA85, TDDE09, TDDE15,\nTEAE01' };
+const STORE_KEY = 'tma-degree-check';
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
+const hp = (n) => (Math.round(n * 10) / 10).toString().replace('.', ',');
+const cohortOf = () => DATA.find((c) => c.id === $('cohort').value);
+let isExample = false;
+
+function fillSelect(sel, items, keep) {
+  sel.innerHTML = items.map(([v, t]) => `<option value="${esc(v)}">${esc(t)}</option>`).join('');
+  if (items.some(([v]) => v === keep)) sel.value = keep;
+}
+
+function fillGroups() {
+  const c = cohortOf();
+  const groups = Object.entries(c.groups);
+  fillSelect($('profile'), groups.filter(([, g]) => g.kind === 'profile').map(([k, g]) => [k, g.name]), $('profile').value);
+  fillSelect($('spec'), groups.filter(([, g]) => g.kind === 'spec').map(([k, g]) => [k, g.name]), $('spec').value);
+  $('source').href = `https://studieinfo.liu.se/program/6CTMA/${c.id}#curriculum`;
+}
+
+const codesInText = () => new Set(parseInput($('courses').value).entries.map((e) => e.code));
+
+function toggleCourse(code) {
+  const codes = [...codesInText()];
+  const next = codes.includes(code) ? codes.filter((c) => c !== code) : [...codes, code];
+  // Keep any credit/level annotations the user typed for other courses.
+  const kept = $('courses').value.toUpperCase().split(/[\s,;]+/).filter(Boolean)
+    .filter((t) => next.includes(t.split(':')[0]));
+  if (!codes.includes(code)) kept.push(code);
+  $('courses').value = kept.join(', ');
+  markEdited();
+  update();
+}
+
+function renderPicker() {
+  const c = cohortOf();
+  const taken = codesInText();
+  const VOF = { o: 'mandatory', 'o/v': 'pick one', v: '', f: 'voluntary' };
+  const group = (title, entries) => `
+    <div class="picker-group">
+      <h3>${esc(title)}</h3>
+      <div class="chips">${entries.map(([code, vof]) => {
+        const info = c.courses[code];
+        const tag = VOF[vof];
+        return `<button type="button" class="chip" data-code="${esc(code)}" aria-pressed="${taken.has(code)}" title="${esc(info.n)} · ${esc(info.l)}">${esc(code)}<span class="hp">${hp(info.hp)}</span>${tag ? `<span class="tag">${tag}</span>` : ''}</button>`;
+      }).join('')}</div>
+    </div>`;
+  const order = { o: 0, 'o/v': 1, v: 2, f: 3 };
+  const sorted = (obj) => Object.entries(obj).sort((a, b) => order[a[1]] - order[b[1]] || a[0].localeCompare(b[0]));
+  const p = c.groups[$('profile').value], s = c.groups[$('spec').value];
+  const biz = c.business.map((code) => [code, s.c[code] === 'o' ? 'o' : 'o/v']);
+  $('picker').innerHTML = `<p class="hint">Tap a course to add or remove it.</p>`
+    + group(`Profile · ${p.name}`, sorted(p.c))
+    + group(`Specialization · ${s.name}`, sorted(s.c))
+    + group('Business course', biz);
+}
+
+function renderResults(r) {
+  const met = r.reqs.filter((q) => q.ok).length, total = r.reqs.length;
+  const v = $('verdict');
+  v.className = 'verdict ' + (met === total ? 'all-ok' : 'some-bad');
+  const missing = r.reqs.filter((q) => !q.ok).map((q) => q.title.toLowerCase());
+  v.innerHTML = `<div class="score">${met}<small>/${total}</small></div><div>
+    <strong>${met === total ? 'Every checked requirement is met' : `${total - met} requirement${total - met === 1 ? '' : 's'} not met`}</strong>
+    <span>${met === total ? `${hp(r.totals.totalHp)} hp counted in semesters 7–9.` : 'Not met: ' + esc(missing.join('; ')) + '.'}</span></div>`;
+
+  $('warnings').innerHTML = r.warnings.map((w) => `<li>${esc(w)}</li>`).join('');
+
+  const groups = [
+    ['Master profile', ['profile-mandatory', 'profile-hp', 'profile-adv']],
+    ['Technical specialization', ['spec-mandatory', 'spec-hp']],
+    ['Degree requirements', ['business', 'outside', 'total', 'advanced', 'main-field']],
+  ];
+  $('reqs').innerHTML = groups.map(([title, ids]) => `<div class="req-group"><h3>${title}</h3>${ids.map((id) => {
+    const q = r.reqs.find((x) => x.id === id);
+    let meter = '';
+    if (q.progress && q.progress.target) {
+      const frac = Math.min(1, q.progress.value / q.progress.target);
+      meter = `<div class="meter ${q.ok ? '' : 'bad'}" role="img" aria-label="${hp(q.progress.value)} of ${q.progress.target}"><i style="width:${(frac * 100).toFixed(1)}%"></i></div>`;
+    }
+    return `<div class="req"><span class="pill ${q.ok ? 'ok' : 'bad'}">${q.ok ? 'Met' : 'Not met'}</span>
+      <div class="req-title">${esc(q.title)}</div><div class="req-detail">${esc(q.detail)}</div>${meter}</div>`;
+  }).join('')}</div>`).join('');
+
+  const ROLE = { profile: 'Profile', spec: 'Specialization', elective: 'Program elective', outside: 'Outside plan', excluded: 'Not counted' };
+  $('course-rows').innerHTML = r.courses.length ? r.courses.map((c) => `<tr>
+      <td class="code">${esc(c.code)}</td>
+      <td>${esc(c.name || '—')}${c.note ? `<span class="course-note">${esc(c.note)}</span>` : ''}</td>
+      <td class="num">${hp(c.hp)}</td>
+      <td class="mono">${esc(c.level || '—')}</td>
+      <td><span class="role ${c.role}">${ROLE[c.role]}</span></td></tr>`).join('')
+    : `<tr><td colspan="5" class="empty">No courses yet. Type course codes or tap them in the list on the left.</td></tr>`;
+}
+
+function update() {
+  const state = { cohort: $('cohort').value, profile: $('profile').value, spec: $('spec').value, text: $('courses').value };
+  $('example-tag').hidden = !isExample;
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ ...state, isExample })); } catch (e) {}
+  renderResults(validate(cohortOf(), state.profile, state.spec, state.text));
+  renderPicker();
+}
+
+function markEdited() { isExample = false; }
+
+function load(state) {
+  $('cohort').value = state.cohort;
+  fillGroups();
+  $('profile').value = state.profile;
+  $('spec').value = state.spec;
+  $('courses').value = state.text;
+}
+
+fillSelect($('cohort'), DATA.map((c) => [c.id, c.label]), '5270');
+let saved = null;
+try { saved = JSON.parse(localStorage.getItem(STORE_KEY)); } catch (e) {}
+if (saved && DATA.some((c) => c.id === saved.cohort)) { load(saved); isExample = !!saved.isExample; }
+else { load(EXAMPLE); isExample = true; }
+update();
+
+$('cohort').addEventListener('change', () => { fillGroups(); update(); });
+$('profile').addEventListener('change', update);
+$('spec').addEventListener('change', update);
+$('courses').addEventListener('input', () => { markEdited(); update(); });
+$('clear').addEventListener('click', () => { $('courses').value = ''; markEdited(); update(); $('courses').focus(); });
+$('example').addEventListener('click', () => { load(EXAMPLE); isExample = true; update(); });
+$('picker').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (b) toggleCourse(b.dataset.code); });
+$('plan').addEventListener('submit', (e) => e.preventDefault());
+</script>
+</body>
+</html>
