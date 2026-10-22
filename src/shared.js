@@ -97,6 +97,9 @@ const UI = {
     summaryTitle: 'Your plan', summaryReqs: (met, total) => `${met} of ${total} requirements met`, seeAll: 'See all requirements',
     openInCheck: 'Show in Check a plan', emptyPlan: 'No courses yet. Click courses in the semesters to the right to start.',
     planCourses: (n, hpTotal) => `${n} course${n === 1 ? '' : 's'}, ${hpTotal} hp`,
+    todoTitle: 'How to meet the requirements', todoAddBtn: (c, s) => `+ ${c} (sem. ${s})`, todoMoveBtn: (c, s) => `Move ${c} to sem. ${s}`, todoRemoveBtn: (c) => `Remove ${c}`,
+    layoutLabel: 'Layout', layoutPeriods: 'Periods side by side', layoutBlocks: 'Blocks as columns',
+    courseInfo: (c) => `${c} on studieinfo`, chosenPeriod: (p) => `chosen in period ${p}`,
     exportOpen: 'Export…', exportTitle: 'Export your plan', exportFormat: 'Format',
     exportPdfHint: 'For reading and printing, e.g. to bring to study counselling.',
     exportXlsxHint: 'A spreadsheet you can sort and keep editing.',
@@ -209,6 +212,9 @@ const UI = {
     summaryTitle: 'Din plan', summaryReqs: (met, total) => `${met} av ${total} krav uppfyllda`, seeAll: 'Se alla krav',
     openInCheck: 'Visa i Kontrollera plan', emptyPlan: 'Inga kurser än. Klicka på kurser i terminerna till höger för att börja.',
     planCourses: (n, hpTotal) => `${n} ${n === 1 ? 'kurs' : 'kurser'}, ${hpTotal} hp`,
+    todoTitle: 'Så uppfyller du kraven', todoAddBtn: (c, s) => `+ ${c} (termin ${s})`, todoMoveBtn: (c, s) => `Flytta ${c} till termin ${s}`, todoRemoveBtn: (c) => `Ta bort ${c}`,
+    layoutLabel: 'Visning', layoutPeriods: 'Perioder sida vid sida', layoutBlocks: 'Block som kolumner',
+    courseInfo: (c) => `${c} på studieinfo`, chosenPeriod: (p) => `vald i period ${p}`,
     exportOpen: 'Exportera…', exportTitle: 'Exportera planen', exportFormat: 'Format',
     exportPdfHint: 'För att läsa och skriva ut, t.ex. till ett möte med studievägledningen.',
     exportXlsxHint: 'Ett kalkylblad som du kan sortera och fortsätta redigera.',
@@ -239,7 +245,7 @@ const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
 const hp = (n) => (Math.round(n * 10) / 10).toString().replace('.', ',');
 const cohortOf = () => DATA.find((c) => c.id === $('cohort').value);
-const state = { lang: 'sv', langChosen: false, text: '', semesters: {}, isExample: false, planId: null };
+const state = { lang: 'sv', langChosen: false, text: '', semesters: {}, instances: {}, isExample: false, planId: null };
 let lastResult = null;
 const t = () => UI[state.lang];
 const courseName = (info) => (state.lang === 'en' ? info.ne || info.n : info.n);
@@ -523,7 +529,8 @@ async function runExport(e) {
 // ---- Things both pages share: requirement list, credit warnings, plan storage, saved plans,
 // confirm dialog, guided tour, contact link. Each page defines update(), renderPageStatic() and afterLoad(). ----
 
-const validateOpts = (extra) => ({ lang: state.lang, semesters: state.semesters, catalog: CATALOG, ...extra });
+const validateOpts = (extra) => ({ lang: state.lang, semesters: state.semesters, instances: state.instances, catalog: CATALOG, ...extra });
+const courseUrl = (code) => `https://studieinfo.liu.se/${state.lang === 'en' ? 'en/' : ''}kurs/${encodeURIComponent(code)}`;
 
 function renderReqGroups(r) {
   return REQ_GROUPS.map((ids, gi) => `<div class="req-group"><h3>${esc(t().groups[gi])}</h3>${ids.map((id) => {
@@ -539,6 +546,20 @@ function renderReqGroups(r) {
   }).join('')}</div>`).join('');
 }
 
+// Steps toward a working plan, with buttons that add, move or remove the suggested courses.
+function renderTodo(r) {
+  if (!r.todo.length) return '';
+  const label = (a) => (a.type === 'add' ? t().todoAddBtn(a.code, a.sem) : a.type === 'move' ? t().todoMoveBtn(a.code, a.sem) : t().todoRemoveBtn(a.code));
+  return `<div class="todo"><h3>${esc(t().todoTitle)}</h3><ol>${r.todo.map((i) => `<li><span>${esc(i.text)}</span>${i.actions.length
+    ? `<span class="todo-actions">${i.actions.map((a) => `<button type="button" data-todo="${esc(a.type)}" data-code="${esc(a.code)}" data-sem="${a.sem || ''}">${esc(label(a))}</button>`).join('')}</span>` : ''}</li>`).join('')}</ol></div>`;
+}
+function runTodo(button) {
+  const { todo, code, sem } = button.dataset;
+  if (todo === 'remove') removeCourse(code); else setCourse(code, Number(sem));
+  afterLoad();
+  update();
+}
+
 function renderLoad(r) {
   const load = r.schedule.load;
   if (!load.length) return `<p class="ok-note">${esc(t().loadOk)}</p>`;
@@ -549,9 +570,9 @@ function renderLoad(r) {
 const readJSON = (key, fallback) => { try { const v = JSON.parse(localStorage.getItem(key)); return v == null ? fallback : v; } catch (e) { return fallback; } };
 const writeJSON = (key, value) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {} };
 const PLANS_KEY = 'tma-degree-check-plans';
-const currentPlan = () => ({ cohort: $('cohort').value, profile: $('profile').value, spec: $('spec').value, text: state.text, semesters: { ...state.semesters } });
-const samePlan = (a, b) => JSON.stringify([a.cohort, a.profile, a.spec, parseInput(a.text).entries, a.semesters])
-  === JSON.stringify([b.cohort, b.profile, b.spec, parseInput(b.text).entries, b.semesters]);
+const currentPlan = () => ({ cohort: $('cohort').value, profile: $('profile').value, spec: $('spec').value, text: state.text, semesters: { ...state.semesters }, instances: { ...state.instances } });
+const samePlan = (a, b) => JSON.stringify([a.cohort, a.profile, a.spec, parseInput(a.text).entries, a.semesters, a.instances || {}])
+  === JSON.stringify([b.cohort, b.profile, b.spec, parseInput(b.text).entries, b.semesters, b.instances || {}]);
 
 function save() {
   writeJSON(STORE_KEY, { ...currentPlan(), lang: state.langChosen ? state.lang : undefined, isExample: state.isExample, planId: state.planId });
@@ -565,19 +586,22 @@ function loadPlan(p) {
   $('spec').value = p.spec;
   state.text = p.text || '';
   state.semesters = { ...(p.semesters || {}) };
+  state.instances = { ...(p.instances || {}) };
   afterLoad();
 }
 
 function planCodes() { return parseInput(state.text).entries.map((e) => e.code); }
-function setCourse(code, sem) {
+function setCourse(code, sem, instance) {
   const codes = planCodes();
   if (!codes.includes(code)) state.text = (state.text.trim() ? state.text.trim().replace(/,$/, '') + ', ' : '') + code;
   if (sem) state.semesters[code] = sem;
+  if (instance != null) state.instances[code] = instance; else delete state.instances[code];
   state.isExample = false;
 }
 function removeCourse(code) {
   state.text = state.text.toUpperCase().split(/[\s,;]+/).filter((tok) => tok && tok.split(':')[0] !== code).join(', ');
   delete state.semesters[code];
+  delete state.instances[code];
   state.isExample = false;
 }
 
@@ -679,7 +703,8 @@ function startTour(force) {
   $('tour').hidden = false;
   showTourStep();
 }
-function endTour() { $('tour').hidden = true; }
+function endTour() { $('tour').hidden = true; cancelAnimationFrame(tour.frame); }
+function followTour() { placeTour(); tour.frame = requestAnimationFrame(followTour); }
 function showTourStep() {
   const [sel, title, text] = tour.steps[tour.i];
   const el = document.querySelector(sel);
@@ -696,8 +721,8 @@ function showTourStep() {
   const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   target.scrollIntoView({ block: 'center', behavior: smooth ? 'smooth' : 'auto' });
   tour.target = target;
-  placeTour();
-  setTimeout(placeTour, smooth ? 350 : 0);
+  cancelAnimationFrame(tour.frame);
+  followTour();
   $('tour-next').focus();
 }
 function placeTour() {
@@ -759,12 +784,14 @@ function boot() {
   $('tour-back').addEventListener('click', () => { if (tour.i > 0) { tour.i--; showTourStep(); } });
   $('tour-skip').addEventListener('click', endTour);
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('tour').hidden) endTour(); });
-  window.addEventListener('resize', placeTour);
-  window.addEventListener('scroll', placeTour, { passive: true });
   $('cohort').addEventListener('change', () => { renderStatic(); update(); });
   $('profile').addEventListener('change', update);
   $('spec').addEventListener('change', update);
-  document.addEventListener('click', (e) => { if (e.target.closest('#export-open')) openExport(); });
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#export-open')) openExport();
+    const todo = e.target.closest('[data-todo]');
+    if (todo) runTodo(todo);
+  });
   $('export-cancel').addEventListener('click', () => $('export-dialog').close());
   $('export-form').addEventListener('submit', runExport);
   startTour(false);

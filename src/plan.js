@@ -33,83 +33,97 @@ function visibleCourses() {
   return tags;
 }
 
+// Courses in the plan for a semester, with the offering they are actually using.
 function placedIn(r, sem) {
-  return r.courses.filter((x) => x.counted && x.sem === sem).map((x) => ({ code: x.code, insts: instancesIn(x.code, sem), coord: (infoOf(x.code) || {}).coord || [] }));
+  return r.courses.filter((x) => x.counted && x.sem === sem && x.slots)
+    .map((x) => ({ code: x.code, insts: [x.slots], coord: (infoOf(x.code) || {}).coord || [] }));
 }
 
-// Courses already in the plan for this semester that the course would collide with.
-function conflictsFor(code, sem, r) {
-  const insts = instancesIn(code, sem);
+// Courses already in the plan for this semester that the course (or one offering of it) would collide with.
+function conflictsFor(code, sem, r, inst) {
+  const all = instancesIn(code, sem);
+  const insts = inst != null && all[inst] ? [all[inst]] : all;
   const coord = (infoOf(code) || {}).coord || [];
   return placedIn(r, sem).filter((p) => p.code !== code && !coord.includes(p.code) && !p.coord.includes(code))
     .map((p) => ({ code: p.code, slot: clash(insts, p.insts) })).filter((x) => x.slot);
 }
 
-function courseButton(code, sem, r, meta, cls) {
+function courseCard(code, sem, inst, multi, r, meta, cls) {
   const info = infoOf(code);
-  const inPlan = r.courses.find((x) => x.code === code);
-  const here = inPlan && inPlan.sem === sem;
-  let note = '';
-  let status = '';
+  const inPlan = r.courses.find((x) => x.code === code && x.counted);
+  const here = inPlan && inPlan.sem === sem && (!multi || inPlan.instance === inst);
+  let note = '', status = '';
   if (here) status = 'selected';
+  else if (inPlan && inPlan.sem === sem) { status = 'elsewhere'; note = t().chosenPeriod(inPlan.slots[0][0]); }
   else if (inPlan && inPlan.sem) { status = 'elsewhere'; note = t().chosenIn(inPlan.sem); }
   else {
-    const conflicts = conflictsFor(code, sem, r);
+    const conflicts = conflictsFor(code, sem, r, multi ? inst : null);
     if (conflicts.length) { status = 'conflict'; note = t().clashesWith(conflicts.map((x) => x.code).join(', ')); }
   }
-  return `<button type="button" class="course ${status} ${cls || ''}" data-code="${esc(code)}" data-sem="${sem}" aria-pressed="${here}">
-    <span class="c-head"><span class="c-code">${esc(code)}</span><span class="c-hp">${hp(info.hp)} hp</span></span>
-    <span class="c-name">${esc(courseName(info))}</span>
-    <span class="c-meta">${esc(meta)}</span>${note ? `<span class="c-note">${esc(note)}</span>` : ''}</button>`;
+  return `<div class="course ${status} ${cls || ''}">
+    <button type="button" class="c-main" data-code="${esc(code)}" data-sem="${sem}" data-inst="${inst}" data-multi="${multi ? 1 : 0}" aria-pressed="${!!here}">
+      <span class="c-head"><span class="c-code">${esc(code)}</span><span class="c-hp">${hp(info.hp)} hp</span></span>
+      <span class="c-name">${esc(courseName(info))}</span>
+      <span class="c-meta">${esc(meta)}</span>${note ? `<span class="c-note">${esc(note)}</span>` : ''}</button>
+    <a class="c-link" href="${courseUrl(code)}" target="_blank" rel="noopener" title="${esc(t().courseInfo(code))}" aria-label="${esc(t().courseInfo(code))}">i</a>
+  </div>`;
 }
+
+const LAYOUT_KEY = 'tma-plan-layout';
+let layout = readJSON(LAYOUT_KEY, 'periods');
 
 function renderGrid(r) {
   const tags = visibleCourses();
   // Courses in the plan are always shown, also when they are outside the current filter.
   for (const x of r.courses) if (x.counted && x.sem && !tags[x.code]) tags[x.code] = { roles: x.role === 'outside' ? ['outside'] : [], vof: '' };
   const html = [7, 8, 9].map((sem) => {
-    // period -> block -> [[code, cls]]
+    // period -> block -> [entry]
     const cells = { 1: {}, 2: {} };
     for (const [code, tag] of Object.entries(tags)) {
       const insts = instancesIn(code, sem);
-      for (const inst of insts) {
+      const info = courseSchedule(cohortOf(), CATALOG, code);
+      if (!info || !semesterOptions(info).includes(sem)) continue;
+      insts.forEach((inst, i) => {
         const both = new Set(inst.map(([p]) => p)).size > 1;
-        for (const [p, b] of inst) {
-          if (!cells[p]) continue;
-          (cells[p][b] = cells[p][b] || []).push([code, tag, both]);
-        }
-      }
+        for (const [p, b] of inst) if (cells[p]) (cells[p][b] = cells[p][b] || []).push({ code, tag, both, inst: i, multi: insts.length > 1 });
+      });
     }
-    const periods = [1, 2].map((p) => {
-      const blocks = BLOCK_ORDER.filter((b) => cells[p][b]).map((b) => {
-        const list = cells[p][b].sort((a, z) => (z[1].vof === 'o') - (a[1].vof === 'o') || a[0].localeCompare(z[0]));
-        return `<div class="block"><h4>${esc(b === '-' ? t().noBlockHead : t().blockHead(b))}</h4>${list.map(([code, tag, both]) => {
-          const info = infoOf(code);
-          const parts = [info.l, ...tag.roles.map((x) => (x === 'outside' ? t().roles.outside : t().roles[x])), t().vof[tag.vof] || '', both ? t().periodHead('12') : ''].filter(Boolean);
-          return courseButton(code, sem, r, parts.join(' · '), tag.vof === 'o' ? 'mandatory' : '');
-        }).join('')}</div>`;
+    const card = (e) => {
+      const info = infoOf(e.code);
+      const parts = [info.l, ...e.tag.roles.map((x) => t().roles[x]), t().vof[e.tag.vof] || '', e.both ? t().periodHead('12') : ''].filter(Boolean);
+      return courseCard(e.code, sem, e.inst, e.multi, r, parts.join(' · '), e.tag.vof === 'o' ? 'mandatory' : '');
+    };
+    const sorted = (list) => list.sort((a, z) => (z.tag.vof === 'o') - (a.tag.vof === 'o') || a.code.localeCompare(z.code));
+    const blockHtml = (p, b) => `<div class="block" data-block="${b}"><h4>${esc(b === '-' ? t().noBlockHead : t().blockHead(b))}</h4>${
+      cells[p][b] ? sorted(cells[p][b]).map(card).join('') : '<p class="hint">–</p>'}</div>`;
+    let periods;
+    if (layout === 'blocks') {
+      // Each period across the full width, with the blocks side by side so the same block lines up.
+      const blocks = BLOCK_ORDER.filter((b) => b !== '-' || cells[1]['-'] || cells[2]['-']);
+      periods = [1, 2].map((p) => `<div class="period-row"><h3>${esc(t().periodHead(String(p)))}</h3>
+        <div class="block-cols" style="--cols:${blocks.length}">${blocks.map((b) => blockHtml(p, b)).join('')}</div></div>`).join('');
+    } else {
+      periods = [1, 2].map((p) => {
+        const present = BLOCK_ORDER.filter((b) => cells[p][b]);
+        return `<div class="period"><h3>${esc(t().periodHead(String(p)))}</h3>${present.map((b) => blockHtml(p, b)).join('') || '<p class="hint">–</p>'}</div>`;
       }).join('');
-      return `<div class="period"><h3>${esc(t().periodHead(String(p)))}</h3>${blocks || '<p class="hint">–</p>'}</div>`;
-    }).join('');
+    }
     const total = r.schedule.perSemester[sem];
-    const heavy = total > 30;
     return `<section class="sem" data-sem="${sem}"><header><h2>${esc(t().semHead(sem, termLabel(sem)))}</h2>
-      <span class="sem-hp${heavy ? ' heavy' : ''}">${hp(total)} hp</span></header><div class="periods">${periods}</div></section>`;
+      <span class="sem-hp${total > 30 ? ' heavy' : ''}">${hp(total)} hp</span></header><div class="periods layout-${layout}">${periods}</div></section>`;
   }).join('');
   $('grid').innerHTML = html;
+  document.querySelectorAll('[data-layout]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.layout === layout));
 }
 
 function renderSummary(r) {
   const met = r.reqs.filter((q) => q.ok).length, total = r.reqs.length;
-  const missing = r.reqs.filter((q) => !q.ok);
-  const clashes = r.schedule.collisions;
   const counted = r.courses.filter((x) => x.counted);
   const sems = [7, 8, 9].map((sem) => `<tr><th>${esc(t().semHead(sem, termLabel(sem)))}</th><td class="num${r.schedule.perSemester[sem] > 30 ? ' heavy' : ''}">${hp(r.schedule.perSemester[sem])} hp</td></tr>`).join('');
   $('summary').innerHTML = `<h2>${esc(t().summaryTitle)}</h2>
     <p class="hint">${esc(counted.length ? t().planCourses(counted.length, hp(r.totals.totalHp)) : t().emptyPlan)}</p>
     <p class="sum-line ${met === total ? 'ok' : 'bad'}">${met === total ? '✓' : '✗'} ${esc(t().summaryReqs(met, total))}</p>
-    ${missing.length ? `<ul class="sum-missing">${missing.map((q) => `<li>${esc(q.title)}</li>`).join('')}</ul>` : ''}
-    ${clashes.length ? `<ul class="sum-clashes">${clashes.map((x) => `<li>${esc(t().clashItem(x.a, x.b, x.sem, x.period, x.block))}</li>`).join('')}</ul>` : ''}
+    ${renderTodo(r)}
     <table class="sem-sum"><tbody>${sems}</tbody></table>
     ${renderLoad(r)}
     <p class="sum-links"><a href="#all-reqs">${esc(t().seeAll)}</a> · <a href="index.html">${esc(t().openInCheck)}</a></p>`;
@@ -146,7 +160,7 @@ function otherItem(code, r) {
   const actions = inPlan
     ? `<span class="hint">${esc(t().inPlan(inPlan.sem || '–'))}</span><button type="button" data-remove="${esc(code)}">${esc(t().remove)}</button>`
     : semesterOptions(sched).map((sem) => `<button type="button" data-add="${esc(code)}" data-sem="${sem}">${esc(t().addTo(sem))}</button>`).join('');
-  return `<li class="other-item"><div><span class="c-code">${esc(code)}</span> ${esc(courseName(info))}
+  return `<li class="other-item"><div><a class="c-code" href="${courseUrl(code)}" target="_blank" rel="noopener">${esc(code)}</a> ${esc(courseName(info))}
       <span class="c-meta">${hp(info.hp)} hp · ${esc(info.l || '')} · ${esc(when)} · ${esc(progs)}</span></div>
     <div class="row">${actions}</div></li>`;
 }
@@ -160,15 +174,15 @@ function toast(text) {
   toastTimer = setTimeout(() => { el.hidden = true; }, 5000);
 }
 
-async function addCourse(code, sem) {
-  const conflicts = conflictsFor(code, sem, lastResult);
+async function addCourse(code, sem, inst) {
+  const conflicts = conflictsFor(code, sem, lastResult, inst);
   if (conflicts.length) {
     const list = conflicts.map((x) => t().conflictItem(x.code, sem, x.slot[0], x.slot[1]));
     const ok = await confirmBox(t().conflictTitle, `<p>${esc(t().conflictText(code, list.join(', ')))}</p>`, t().conflictOk);
     if (!ok) return;
   }
   const before = lastResult.schedule.perSemester[sem];
-  setCourse(code, sem);
+  setCourse(code, sem, inst);
   update();
   const after = lastResult.schedule.perSemester[sem];
   if (after > 30 && after > before) {
@@ -194,14 +208,19 @@ function update() {
 }
 
 $('grid').addEventListener('click', (e) => {
-  const b = e.target.closest('.course');
+  const b = e.target.closest('.c-main');
   if (!b) return;
   const code = b.dataset.code, sem = Number(b.dataset.sem);
-  const inPlan = lastResult.courses.find((x) => x.code === code);
-  // Clicking a chosen course removes it; clicking it in another semester moves it there.
-  if (inPlan && inPlan.sem === sem) { removeCourse(code); update(); }
-  else addCourse(code, sem);
+  const inst = b.dataset.multi === '1' ? Number(b.dataset.inst) : null;
+  // Clicking a chosen course removes it; clicking it in another semester or period moves it there.
+  if (b.getAttribute('aria-pressed') === 'true') { removeCourse(code); update(); }
+  else addCourse(code, sem, inst);
 });
+document.querySelectorAll('[data-layout]').forEach((b) => b.addEventListener('click', () => {
+  layout = b.dataset.layout;
+  writeJSON(LAYOUT_KEY, layout);
+  renderGrid(lastResult);
+}));
 $('other-results').addEventListener('click', (e) => {
   const add = e.target.closest('[data-add]');
   const rem = e.target.closest('[data-remove]');

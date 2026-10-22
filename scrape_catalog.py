@@ -81,6 +81,11 @@ def main():
                 info = courses.setdefault(c, dict(n=r['name'], ne=names_en.get(c, r['name']), hp=r['hp'], l=r['level'], tm='3392' in r['fos'], progs=[]))
                 if code not in info['progs']:
                     info['progs'].append(code)
+                # Semesters the course is listed in, so courses only given in semester 9 stay there.
+                for sem in sorted({x['sem'] for x in rs}):
+                    if sem not in info.setdefault('sem', []):
+                        info['sem'].append(sem)
+                info['sem'].sort()
                 year_s = sched.setdefault(year, {})
                 merged = year_s.setdefault(c, {})
                 for term, insts in schedule_of(rs).items():

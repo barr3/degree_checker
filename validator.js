@@ -33,6 +33,21 @@ const MESSAGES = {
     earlyElective: 'Year 1–3 elective.',
     outsideAssumed: (hp) => `Not in the program plan. Credits unknown, assumed ${hp} hp.`,
     outside: 'Not in the program plan.',
+    todoAdd: (x) => `Add ${x}.`,
+    todoProfileHp: (hp) => `Add profile courses for ${hp} more hp.`,
+    todoProfileAdv: (n) => `Add ${n} more advanced-level profile course${n === 1 ? '' : 's'}.`,
+    todoPickOne: (x) => `Pick one of ${x}.`,
+    todoSpecHp: (hp) => `Add specialization courses for ${hp} more hp.`,
+    todoBusiness: (x) => `Add a business course: ${x}.`,
+    todoOutside: (hp) => `Remove courses outside the program plan for ${hp} hp, or swap them for courses in the plan.`,
+    todoTotal: (hp) => `Add courses for ${hp} more hp.`,
+    todoAdvanced: (hp) => `Add advanced-level courses for ${hp} more hp, or swap basic-level courses for advanced ones.`,
+    todoMainField: (hp) => `Add advanced courses in Tillämpad matematik for ${hp} more hp (most profile courses count).`,
+    todoClash: (a, b, sem) => `${a} and ${b} collide in semester ${sem}.`,
+    todoMove: (code, from, to) => `Move ${code} from semester ${from} to semester ${to} to even out the credits.`,
+    todoHeavy: (sem) => `Semester ${sem} is over 30 hp. Consider dropping a course there.`,
+    todoCsn: (hp) => `Add ${hp} hp in semester 7 or 8 to reach 60 hp for the year (CSN).`,
+    todoSem9: (hp) => `Add ${hp} hp in semester 9 to reach 30 hp (CSN).`,
     outsideCatalog: (progs) => `Not in the program plan. Given for other programs (${progs}).`,
     outsideLanguage: 'Language course, not in the program plan.',
     heavy: (sem, hp) => `Semester ${sem} has ${hp} hp. More than 30 hp in a semester is a lot of work.`,
@@ -77,6 +92,21 @@ const MESSAGES = {
     earlyElective: 'Valbar kurs i åk 1–3.',
     outsideAssumed: (hp) => `Finns inte i programplanen. Okänt antal hp, antas vara ${hp} hp.`,
     outside: 'Finns inte i programplanen.',
+    todoAdd: (x) => `Lägg till ${x}.`,
+    todoProfileHp: (hp) => `Lägg till profilkurser för ${hp} hp till.`,
+    todoProfileAdv: (n) => `Lägg till ${n} profilkurs${n === 1 ? '' : 'er'} till på avancerad nivå.`,
+    todoPickOne: (x) => `Välj en av ${x}.`,
+    todoSpecHp: (hp) => `Lägg till inriktningskurser för ${hp} hp till.`,
+    todoBusiness: (x) => `Lägg till en kurs i företags- och affärsmässiga villkor: ${x}.`,
+    todoOutside: (hp) => `Ta bort kurser utanför programplanen för ${hp} hp, eller byt dem mot kurser i programplanen.`,
+    todoTotal: (hp) => `Lägg till kurser för ${hp} hp till.`,
+    todoAdvanced: (hp) => `Lägg till kurser på avancerad nivå för ${hp} hp till, eller byt kurser på grundnivå mot avancerade.`,
+    todoMainField: (hp) => `Lägg till avancerade kurser i Tillämpad matematik för ${hp} hp till (de flesta profilkurser räknas).`,
+    todoClash: (a, b, sem) => `${a} och ${b} krockar termin ${sem}.`,
+    todoMove: (code, from, to) => `Flytta ${code} från termin ${from} till termin ${to} för att jämna ut poängen.`,
+    todoHeavy: (sem) => `Termin ${sem} har mer än 30 hp. Fundera på att stryka en kurs där.`,
+    todoCsn: (hp) => `Lägg till ${hp} hp termin 7 eller 8 för att nå 60 hp på året (CSN).`,
+    todoSem9: (hp) => `Lägg till ${hp} hp termin 9 för att nå 30 hp (CSN).`,
     outsideCatalog: (progs) => `Finns inte i programplanen. Ges för andra program (${progs}).`,
     outsideLanguage: 'Språkkurs, finns inte i programplanen.',
     heavy: (sem, hp) => `Termin ${sem} har ${hp} hp. Mer än 30 hp på en termin är mycket arbete.`,
@@ -134,9 +164,15 @@ const sum = (items) => items.reduce((s, c) => s + c.hp, 0);
 const isAdv = (level) => /^A/.test(level || '');
 
 // Semesters a course can be taken in, from the terms it is scheduled in.
+// Spring courses are taken in semester 8. A course the plan lists in semester 7 can usually also be
+// taken in semester 9, but one listed only in semester 9 (the project courses, for example) cannot be
+// moved to semester 7.
 function semesterOptions(info) {
   if (!info || !info.s) return [];
-  return Object.keys(info.s).flatMap((term) => TERM_SEMESTERS[term]).sort();
+  const out = [];
+  if (info.s.VT) out.push(8);
+  if (info.s.HT) out.push(...(!info.sem || info.sem.includes(7) ? [7, 9] : [9]));
+  return out.sort();
 }
 
 // The shared [period, block] if two courses cannot avoid each other, otherwise null.
@@ -165,7 +201,8 @@ function courseSchedule(cohort, catalog, code) {
   const year = cohort.label.slice(3);
   const s = (catalog.sched[year] || {})[code] || catalog.lang[code] || catalog.sched.base[code];
   if (!s) return null;
-  return { ...catalog.courses[code], s, sem: Object.keys(s).map((term) => TERM_SEMESTERS[term][0]) };
+  const listed = catalog.courses[code].sem;
+  return { ...catalog.courses[code], s, sem: listed && listed.length ? listed : Object.keys(s).map((term) => TERM_SEMESTERS[term][0]) };
 }
 
 function classify(cohort, profile, spec, entry, M, lang, catalog) {
@@ -239,15 +276,19 @@ function alternatives(cohort, alt, placed, x, sem) {
   return out;
 }
 
-function timetable(cohort, alt, catalog, courses, semesters, M) {
+function timetable(cohort, alt, catalog, courses, semesters, M, instances) {
   const placed = courses.filter((c) => c.counted).map((c) => {
     const info = courseSchedule(cohort, catalog, c.code);
     const options = semesterOptions(info);
     if (!options.length) return null;
-    const sem = options.includes(semesters[c.code]) ? semesters[c.code] : Math.min(...info.sem);
+    const listed = options.filter((o) => info.sem.includes(o));
+    const sem = options.includes(semesters[c.code]) ? semesters[c.code] : Math.min(...(listed.length ? listed : options));
     c.sem = sem;
     c.semOptions = options;
-    return { code: c.code, sem, options, info, insts: info.s[termOf(sem)], coord: info.coord };
+    // A course given in two separate periods (TEAE01) can be pinned to one of its offerings.
+    const all = info.s[termOf(sem)];
+    const pinned = instances && all[instances[c.code]];
+    return { code: c.code, sem, options, info, insts: pinned ? [pinned] : all, all, coord: info.coord };
   }).filter(Boolean);
 
   // For courses with several offerings in a term (TEAE01 in period 1 or 2), use the one that
@@ -258,7 +299,8 @@ function timetable(cohort, alt, catalog, courses, semesters, M) {
     const best = p.insts.reduce((a, b) => (score(b) < score(a) ? b : a));
     const course = courses.find((c) => c.code === p.code);
     course.slots = best;
-    course.otherSlots = p.insts.filter((i) => i !== best);
+    course.otherSlots = p.all.filter((i) => i !== best);
+    course.instance = p.all.indexOf(best);
   }
 
   const collisions = [];
@@ -282,7 +324,70 @@ function timetable(cohort, alt, catalog, courses, semesters, M) {
   for (const sem of [7, 8, 9]) if (perSemester[sem] > SEMESTER_HP) load.push({ type: 'heavy', sem, text: M.heavy(sem, fmt(perSemester[sem])) });
   if (perSemester[7] + perSemester[8] < 2 * SEMESTER_HP) load.push({ type: 'csn', text: M.csnYear(fmt(perSemester[7] + perSemester[8])) });
   if (perSemester[9] < SEMESTER_HP) load.push({ type: 'csn', text: M.csnSem9(fmt(perSemester[9])) });
-  return { collisions, perSemester, unplacedHp: sum(unplaced), load };
+  return { collisions, perSemester, unplacedHp: sum(unplaced), load, placed };
+}
+
+// Concrete steps toward a plan that meets the requirements: courses to add (that fit the timetable and
+// the credit balance), courses to move between semester 7 and 9, and what to look at otherwise.
+function guidance(g) {
+  const { cohort, catalog, profile, spec, schedule, taken, label, M } = g;
+  const per = { ...schedule.perSemester };
+  const inSem = (sem) => schedule.placed.filter((p) => p.sem === sem);
+  const items = [];
+  const item = (text, actions = []) => items.push({ text, actions });
+
+  // Where a course could go: a semester it is offered in without collisions, the lightest first.
+  const fitting = (code) => {
+    const info = courseSchedule(cohort, catalog, code);
+    if (!info) return null;
+    const opts = semesterOptions(info).sort((a, b) => per[a] - per[b]);
+    return opts.find((sem) => !inSem(sem).some((p) => !(p.coord || []).includes(code) && clash(info.s[termOf(sem)], p.insts))) || null;
+  };
+  const suggest = (codes, n, filter = () => true) => codes
+    .filter((c) => !taken.has(c) && cohort.early[c] !== 'o' && cohort.courses[c] && filter(cohort.courses[c]))
+    .map((c) => ({ code: c, sem: fitting(c), hp: cohort.courses[c].hp }))
+    .filter((x) => x.sem)
+    .sort((a, b) => per[a.sem] - per[b.sem] || a.code.localeCompare(b.code))
+    .slice(0, n)
+    .map((x) => ({ type: 'add', code: x.code, sem: x.sem }));
+  const profCodes = Object.keys(profile.c).filter((c) => profile.c[c] !== 'f');
+  const specCodes = Object.keys(spec.c).filter((c) => spec.c[c] !== 'f');
+  const adv = (info) => isAdv(info.l);
+
+  for (const c of g.missing.prof) item(M.todoAdd(label(c)), suggest([c], 1));
+  if (g.need.profHp > 0) item(M.todoProfileHp(fmt(g.need.profHp)), suggest(profCodes, 3));
+  if (g.need.profAdv > 0) item(M.todoProfileAdv(g.need.profAdv), suggest(profCodes, 3, adv));
+  for (const c of g.missing.spec) item(M.todoAdd(label(c)), suggest([c], 1));
+  if (g.missing.choice.length) item(M.todoPickOne(g.missing.choice.join(', ')), suggest(g.missing.choice, 4));
+  if (g.need.specHp > 0) item(M.todoSpecHp(fmt(g.need.specHp)), suggest(specCodes, 3));
+  if (g.missing.biz.length) item(M.todoBusiness(g.missing.biz.join(', ')), suggest(g.missing.biz, 2));
+  if (g.need.outside > 0) item(M.todoOutside(fmt(g.need.outside)), g.counted.filter((c) => c.role === 'outside').map((c) => ({ type: 'remove', code: c.code })));
+  if (g.need.total > 0) item(M.todoTotal(fmt(g.need.total)), suggest([...profCodes, ...specCodes], 3));
+  if (g.need.adv > 0) item(M.todoAdvanced(fmt(g.need.adv)), suggest([...profCodes, ...specCodes], 3, adv));
+  if (g.need.tm > 0) item(M.todoMainField(fmt(g.need.tm)), suggest([...profCodes, ...specCodes], 3, (i) => adv(i) && i.tm));
+
+  for (const x of schedule.collisions) {
+    item(M.todoClash(x.a, x.b, x.sem), x.options.filter((o) => o.type === 'move').slice(0, 2).map((o) => ({ type: 'move', code: o.code, sem: o.sem })));
+  }
+
+  // Credit balance: move autumn courses between semester 7 and 9 where that helps.
+  const movable = (from, to) => inSem(from)
+    .filter((p) => p.options.includes(to) && !inSem(to).some((q) => clash(p.info.s[termOf(to)], q.insts)))
+    .map((p) => ({ code: p.code, hp: g.counted.find((c) => c.code === p.code).hp }))
+    .sort((a, b) => a.hp - b.hp);
+  const balance = (from, to, tooMuch) => {
+    const m = movable(from, to).find((x) => per[to] + x.hp <= SEMESTER_HP);
+    if (m) item(M.todoMove(m.code, from, to), [{ type: 'move', code: m.code, sem: to }]);
+    else if (tooMuch) item(M.todoHeavy(from));
+  };
+  if (per[7] > SEMESTER_HP) balance(7, 9, true);
+  else if (per[9] > SEMESTER_HP) {
+    if (per[7] + per[8] < 2 * SEMESTER_HP) balance(9, 7, true); else item(M.todoHeavy(9));
+  }
+  if (per[8] > SEMESTER_HP) item(M.todoHeavy(8));
+  if (per[7] + per[8] < 2 * SEMESTER_HP && per[9] <= SEMESTER_HP) item(M.todoCsn(fmt(2 * SEMESTER_HP - per[7] - per[8])));
+  if (per[9] < SEMESTER_HP && per[7] <= SEMESTER_HP) item(M.todoSem9(fmt(SEMESTER_HP - per[9])));
+  return items;
 }
 
 function validate(cohort, profileCode, specCode, text, opts = {}) {
@@ -385,8 +490,12 @@ function validate(cohort, profileCode, specCode, text, opts = {}) {
   if (assumed.length) warnings.push(M.assumedHp(DEFAULT_OUTSIDE_HP, assumed.map((c) => c.code).join(', '), assumed[0].code));
   if (outside.some((c) => !isAdv(c.level))) warnings.push(M.basicLevel);
 
-  const schedule = timetable(cohort, opts.alt, opts.catalog, courses, opts.semesters || {}, M);
-  return { courses, reqs, warnings, schedule, totals: { totalHp, profHp, specHp, advHp, tmHp } };
+  const schedule = timetable(cohort, opts.alt, opts.catalog, courses, opts.semesters || {}, M, opts.instances || {});
+  const todo = guidance({ cohort, catalog: opts.catalog, profile, spec, rules, reqs, schedule, counted, taken, label, M, lang,
+    need: { profHp: rules.profileHp - profHp, profAdv: rules.profileAdvCourses - profAdv.length, specHp: rules.specHp - specHp,
+      total: TOTAL_HP - totalHp, adv: ADVANCED_HP - advHp, tm: MAIN_FIELD_HP - tmHp, outside: outsideHp - rules.outsideMax },
+    missing: { prof: profMissing, spec: specMissing, choice: choiceOk ? [] : specChoice, biz: bizTaken.length ? [] : bizOptions } });
+  return { courses, reqs, warnings, schedule, todo, totals: { totalHp, profHp, specHp, advHp, tmHp } };
 }
 
 if (typeof module !== 'undefined') module.exports = { validate, parseInput, clash, semesterOptions, courseSchedule, termOf };

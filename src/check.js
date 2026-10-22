@@ -57,6 +57,7 @@ function renderResults(r) {
   $('warnings').innerHTML = r.warnings.map((w) => `<li>${esc(w)}</li>`).join('');
 
   $('reqs').innerHTML = renderReqGroups(r);
+  $('todo').innerHTML = renderTodo(r);
 
   const clashing = new Set(r.schedule.collisions.flatMap((x) => [x.a, x.b]));
   const row = (course) => {
@@ -69,7 +70,7 @@ function renderResults(r) {
     }
     return `<tr class="${clashing.has(course.code) ? 'clashing' : ''}">
       <td class="code">${esc(course.code)}</td>
-      <td>${esc(course.name || '—')}${course.note ? `<span class="course-note">${esc(course.note)}</span>` : ''}</td>
+      <td>${course.name ? `<a class="course-link" href="${courseUrl(course.code)}" target="_blank" rel="noopener">${esc(course.name)}</a>` : '—'}${course.note ? `<span class="course-note">${esc(course.note)}</span>` : ''}</td>
       <td class="num">${hp(course.hp)}</td>
       <td class="mono">${esc(course.level || '—')}</td>
       <td>${semCell}</td>
